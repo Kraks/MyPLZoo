@@ -50,7 +50,7 @@
 (define (parse s)
   (match s
     [(? number? x) (NumE x)]
-        ['true (BoolE #t)]
+    ['true (BoolE #t)]
     ['false (BoolE #f)]
     [(? symbol? x) (IdE x)]
     [`(+ ,l ,r) (PlusE (parse l) (parse r))]
@@ -59,6 +59,8 @@
      (LamE var (parse-type ty) (parse body))]
     [`(let ([,var : ,ty ,val]) ,body)
      (AppE (LamE var (parse-type ty) (parse body)) (parse val))]
+    [`(if ,cnd ,thn ,els)
+     (IfE (parse cnd) (parse thn) (parse els))]
     [`(,fun ,arg) (AppE (parse fun) (parse arg))]
     [else (error 'parse "invalid expression")]))
 
@@ -111,6 +113,11 @@
     [(MultE l r) (NumV (* (NumV-n (interp l env))
                           (NumV-n (interp r env))))]
     [(LamE arg at body) (ClosureV arg body env)]
+    [(IfE cnd thn els)
+     (match (interp cnd env)
+       [(BoolV #t) (interp thn env)]
+       [(BoolV #f) (interp els env)]
+       [else (error 'interp "not a boolean")])]
     [(AppE fun arg)
      (match (interp fun env)
        [(ClosureV n body env*)
@@ -128,4 +135,18 @@
 ;; Tests
 
 (module+ test
+  (check-equal? (run '1) (NumV 1))
+  (check-equal? (run '{lambda {[x : num]} x})
+                (ClosureV 'x (IdE 'x) '()))
+  (check-equal? (run '{{lambda {[x : num]} {+ x x}} 3})
+                (NumV 6))
+  (check-equal? (run '{let {[double : {num -> num}
+                                    {lambda {[x : num]} {+ x x}}]}
+                        {double 3}})
+                (NumV 6))
+  (check-equal? (run '{{if true
+                           {lambda {[x : num]} {+ x 1}}
+                           {lambda {[x : num]} {+ x 2}}}
+                       3})
+                (NumV 4))
   )
