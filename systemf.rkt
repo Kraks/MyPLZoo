@@ -4,10 +4,14 @@
 
 ;; Implementation of System F
 
+;; Values
+
 (struct NumV (n) #:transparent)
 (struct BoolV (b) #:transparent)
 (struct ClosureV (arg body env) #:transparent)
 (struct PolyV (body env) #:transparent)
+
+;; Expressions
 
 (struct NumE (n) #:transparent)
 (struct BoolE (b) #:transparent)
@@ -18,6 +22,8 @@
 (struct AppE (fun arg) #:transparent)
 (struct TyLamE (arg body) #:transparent)
 (struct TyAppE (tyfun tyarg) #:transparent)
+
+;; Types
 
 (struct NumT () #:transparent)
 (struct BoolT () #:transparent)
