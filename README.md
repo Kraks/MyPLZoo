@@ -2,7 +2,6 @@
 
 Type checkers and interpreters for various toy typed languages.
 
-Many thanks to Matthew Flatt and [CS6510@Utah](http://www.eng.utah.edu/~cs6510/schedule.html), where I first learned crucial knowledge on semantics and interpreters.
 
 Any comments or pull requests are welcomed.
 
@@ -20,3 +19,5 @@ Any comments or pull requests are welcomed.
 * `gradual.rkt` Gradual Type #TODO#
 * `cpcf.rkt` Contract PCF + dependent contract #TODO#
 
+### Acknowledgements 
+Many thanks to Matthew Flatt and [CS6510@Utah](http://www.eng.utah.edu/~cs6510/schedule.html), where I first learned crucial knowledge on semantics and interpreters.
