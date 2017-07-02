@@ -1,9 +1,9 @@
 #lang racket
 
-(require rackunit)
-
 ;; Implementation of System F
 ;; Guannan Wei <guannanwei@outlook.com>
+
+(require rackunit)
 
 ;; Values
 
