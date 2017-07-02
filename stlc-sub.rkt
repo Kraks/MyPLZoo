@@ -71,6 +71,8 @@
      (LamE var (parse-type ty) (parse body))]
     [`(let ([,var : ,ty ,val]) ,body)
      (AppE (LamE var (parse-type ty) (parse body)) (parse val))]
+    [`(if ,cnd ,thn ,els)
+     (IfE (parse cnd) (parse thn) (parse els))]
     [`(,fun ,arg) (AppE (parse fun) (parse arg))]
     [else (error 'parse "invalid expression")]))
 
@@ -179,7 +181,12 @@
      (define rec-v (interp rec env))
      (set-box! (record-find n (RecordV-ns rec-v) (RecordV-vs rec-v))
                (interp v env))
-     rec-v]))
+     rec-v]
+    [(IfE cnd thn els)
+     (match (interp cnd env)
+       [(BoolV #t) (interp thn env)]
+       [(BoolV #f) (interp els env)]
+       [else (error 'interp "not a boolean")])]))
 
 (define mt-env empty)
 (define mt-tenv empty)
