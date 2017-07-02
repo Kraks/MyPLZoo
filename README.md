@@ -2,6 +2,7 @@
 
 Type checkers and interpreters for various toy typed languages.
 
+Each file is a standalone implementation, including a parser for S-expression based syntax, a type checker if any, an interpreter and a bunch of examples written in this language.
 
 Any comments or pull requests are welcomed.
 
