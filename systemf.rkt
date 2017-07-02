@@ -3,6 +3,7 @@
 (require rackunit)
 
 ;; Implementation of System F
+;; Guannan Wei <guannanwei@outlook.com>
 
 ;; Values
 

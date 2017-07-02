@@ -1,6 +1,7 @@
 #lang racket
 
 ;; Simple Typed Lamdba Calculus with Record and Subtyping
+;; Guannan Wei <guannanwei@outlook.com>
 
 (require rackunit)
 

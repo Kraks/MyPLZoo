@@ -1,6 +1,7 @@
 #lang racket
 
 ;; Uni-typed Lambda Calculus
+;; Guannan Wei <guannanwei@outlook.com>
 
 (require rackunit)
 
