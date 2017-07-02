@@ -135,7 +135,7 @@
      (match (typecheck fun tenv)
        [(ArrowT atype rtype)
         (if (subtype? (typecheck arg tenv) atype) rtype
-            (error 'type "argument types not agree"))]
+            (error 'typecheck "argument types not agree"))]
        [_ (error 'typecheck "not a function")])]
     [(RecordE ns es)
      (RecordT ns (map (λ (e) (typecheck e tenv)) es))]
