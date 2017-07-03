@@ -9,7 +9,7 @@ Any comments or pull requests are welcomed.
 * `uni-typed.rkt` Uni-typed Lambda Calculus
 * `stlc.rkt` Simple Typed Lambda Calculus (STLC)
 * `stlc-sub.rkt` STLC + Record + Subtyping
-* `stlc-infer.rkt` STLC + Type Inference #TODO#
+* `stlc-infer.rkt` STLC + Type Inference
 * `stlc-sum-prod.rkt` STLC + sum type + product type #TODO#
 * `stlc-rec.rkt` STLC + sum/product tpye + recursive function + recursive type #TODO#
 * `systemf.rkt` System F, i.e. STLC + Polymorhpism
