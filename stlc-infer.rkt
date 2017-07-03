@@ -1,6 +1,7 @@
 #lang racket
 
 ;; Type Inference for Simple Typed Lambda Calculus
+;; Guannan Wei <guannanwei@outlook.com>
 
 (require rackunit)
 (require racket/set)
@@ -249,4 +250,6 @@
                 (NumV 10))
 
   (check-exn exn:fail? (λ () (run '{{lambda {x} {x x}} {lambda {x} {x x}}})))
+
+  (check-exn exn:fail? (λ () (run '{+ 3 true})))
   )
