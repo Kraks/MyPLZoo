@@ -192,88 +192,92 @@
 
 ;; Test
 
-(check-equal? (parse-type '{a -> a})
-              (FunT (VarT 'a) (VarT 'a)))
+(module+ test
+  (check-equal? (parse-type '{a -> a})
+                (FunT (VarT 'a) (VarT 'a)))
 
-(check-equal? (parse-type '{forall {a} {a -> a}})
-              (ForallT 'a (FunT (VarT 'a) (VarT 'a))))
+  (check-equal? (parse-type '{forall {a} {a -> a}})
+                (ForallT 'a (FunT (VarT 'a) (VarT 'a))))
               
-(check-equal? (parse '{let {[id : {forall {a} {a -> a}}
-                                [LAMBDA [a] {lambda {[x : a]} x}]]}
-                        {+ {[@ id num] 1} {[@ id num] 2}}})
-              (AppE
-               (LamE
-                'id
-                (ForallT 'a (FunT (VarT 'a) (VarT 'a)))
-                (PlusE
-                 (AppE (TyAppE (IdE 'id) (NumT)) (NumE 1))
-                 (AppE (TyAppE (IdE 'id) (NumT)) (NumE 2))))
-               (TyLamE 'a (LamE 'x (VarT 'a) (IdE 'x)))))
+  (check-equal? (parse '{let {[id : {forall {a} {a -> a}}
+                                  [LAMBDA [a] {lambda {[x : a]} x}]]}
+                          {+ {[@ id num] 1} {[@ id num] 2}}})
+                (AppE
+                 (LamE
+                  'id
+                  (ForallT 'a (FunT (VarT 'a) (VarT 'a)))
+                  (PlusE
+                   (AppE (TyAppE (IdE 'id) (NumT)) (NumE 1))
+                   (AppE (TyAppE (IdE 'id) (NumT)) (NumE 2))))
+                 (TyLamE 'a (LamE 'x (VarT 'a) (IdE 'x)))))
 
-(check-equal? (type-check (parse '{let {[id : {forall {a} {a -> a}}
-                                            [LAMBDA [a] {lambda {[x : a]} x}]]}
-                                    {+ {[@ id num] 1} {[@ id num] 2}}})
-                          mt-tenv)
-              (NumT))
+  (check-equal? (type-check (parse '{let {[id : {forall {a} {a -> a}}
+                                              [LAMBDA [a] {lambda {[x : a]} x}]]}
+                                      {+ {[@ id num] 1} {[@ id num] 2}}})
+                            mt-tenv)
+                (NumT))
 
-(check-equal? (parse '{let {[x : num 4]}
+  (check-equal? (parse '{let {[x : num 4]}
+                          {let {[y : num 5]}
+                            {{{lambda {[x : num]}
+                                {lambda {[y : num]}
+                                  {+ x y}}} x} y}}})
+                (AppE (LamE 'x (NumT)
+                            (AppE (LamE 'y (NumT)
+                                        (AppE (AppE (LamE 'x (NumT)
+                                                          (LamE 'y (NumT) (PlusE (IdE 'x) (IdE 'y)))) (IdE 'x))
+                                              (IdE 'y))) (NumE 5))) (NumE 4)))
+
+  (check-equal? (type-check (parse '{let {[x : num 4]}
+                                      {let {[y : num 5]}
+                                        {{{lambda {[x : num]}
+                                            {lambda {[y : num]}
+                                              {+ x y}}} x} y}}}) mt-tenv)
+                (NumT))
+
+  (check-equal? (run '{let {[x : num 4]}
                         {let {[y : num 5]}
                           {{{lambda {[x : num]}
                               {lambda {[y : num]}
                                 {+ x y}}} x} y}}})
-              (AppE (LamE 'x (NumT)
-                          (AppE (LamE 'y (NumT)
-                                      (AppE (AppE (LamE 'x (NumT)
-                                                        (LamE 'y (NumT) (PlusE (IdE 'x) (IdE 'y)))) (IdE 'x))
-                                            (IdE 'y))) (NumE 5))) (NumE 4)))
+                (NumV 9))
 
-(check-equal? (type-check (parse '{let {[x : num 4]}
-                                    {let {[y : num 5]}
-                                      {{{lambda {[x : num]}
-                                          {lambda {[y : num]}
-                                            {+ x y}}} x} y}}}) mt-tenv)
-              (NumT))
+  (check-equal? (run '{let {[id : {forall {a} {a -> a}}
+                                [LAMBDA [a] {lambda {[x : a]} x}]]}
+                        {+ {[@ id num] 1} {{[@ id {num -> num}] {lambda {[x : num]} x}} 2}}})
+                (NumV 3))
 
-(check-equal? (run '{let {[x : num 4]}
-                      {let {[y : num 5]}
-                        {{{lambda {[x : num]}
-                            {lambda {[y : num]}
-                              {+ x y}}} x} y}}})
-              (NumV 9))
+  (check-equal? (type-check
+                 (parse '{let {[f : {forall {a} {a -> {forall {b} {{a -> b} -> b}}}}
+                                  [LAMBDA [a] {lambda {[x : a]}
+                                                [LAMBDA [b] {lambda {[g : {a -> b}]} {g x}}]}]]}
+                           {[@ {[@ f num] 3} bool] {lambda {[x : num]} true}}})
+                 mt-tenv)
+                (BoolT))
 
-(check-equal? (run '{let {[id : {forall {a} {a -> a}}
-                              [LAMBDA [a] {lambda {[x : a]} x}]]}
-                      {+ {[@ id num] 1} {{[@ id {num -> num}] {lambda {[x : num]} x}} 2}}})
-              (NumV 3))
+  (check-equal? (run '{let {[f : {forall {a} {a -> {forall {b} {{a -> b} -> b}}}}
+                               [LAMBDA [a] {lambda {[x : a]}
+                                             [LAMBDA [b] {lambda {[g : {a -> b}]} {g x}}]}]]}
+                        {[@ {[@ f num] 3} bool] {lambda {[x : num]} true}}})
+                (BoolV #t))
 
-(check-equal? (type-check
-               (parse '{let {[f : {forall {a} {a -> {forall {b} {{a -> b} -> b}}}}
-                                [LAMBDA [a] {lambda {[x : a]}
-                                              [LAMBDA [b] {lambda {[g : {a -> b}]} {g x}}]}]]}
-                         {[@ {[@ f num] 3} bool] {lambda {[x : num]} true}}})
-               mt-tenv)
-              (BoolT))
+  ; Boolean Encodings
+  
+  (define Bool '{forall [a] {a -> {a -> a}}})
+  (define True '{LAMBDA [a] {lambda {[x : a]} {lambda {[y : a]} x}}})
+  (define False '{LAMBDA [a] {lambda {[x : a]} {lambda {[y : a]} y}}})
+  (define And `{lambda {[x : ,Bool]} {lambda {[y : ,Bool]} {{[@ x ,Bool] y} ,False}}})
+  (define Bool->Num `{lambda {[x : ,Bool]} {{[@ x num] 1} 0}})
 
-(check-equal? (run '{let {[f : {forall {a} {a -> {forall {b} {{a -> b} -> b}}}}
-                             [LAMBDA [a] {lambda {[x : a]}
-                                           [LAMBDA [b] {lambda {[g : {a -> b}]} {g x}}]}]]}
-                      {[@ {[@ f num] 3} bool] {lambda {[x : num]} true}}})
-              (BoolV #t))
+  (check-equal? (run `{let {[t : ,Bool ,True]}
+                        {let {[f : ,Bool ,False]}
+                          {let {[and : {,Bool -> {,Bool -> ,Bool}} ,And]}
+                            {,Bool->Num {{and t} f}}}}})
+                (NumV 0))
 
-(define Bool '{forall [a] {a -> {a -> a}}})
-(define True '{LAMBDA [a] {lambda {[x : a]} {lambda {[y : a]} x}}})
-(define False '{LAMBDA [a] {lambda {[x : a]} {lambda {[y : a]} y}}})
-(define And `{lambda {[x : ,Bool]} {lambda {[y : ,Bool]} {{[@ x ,Bool] y} ,False}}})
-(define Bool->Num `{lambda {[x : ,Bool]} {{[@ x num] 1} 0}})
-
-(check-equal? (run `{let {[t : ,Bool ,True]}
-                {let {[f : ,Bool ,False]}
-                {let {[and : {,Bool -> {,Bool -> ,Bool}} ,And]}
-                {,Bool->Num {{and t} f}}}}})
-              (NumV 0))
-
-(check-equal? (run `{let {[t : ,Bool ,True]}
-                {let {[f : ,Bool ,False]}
-                {let {[and : {,Bool -> {,Bool -> ,Bool}} ,And]}
-                {,Bool->Num {{and t} t}}}}})
-              (NumV 1))
+  (check-equal? (run `{let {[t : ,Bool ,True]}
+                        {let {[f : ,Bool ,False]}
+                          {let {[and : {,Bool -> {,Bool -> ,Bool}} ,And]}
+                            {,Bool->Num {{and t} t}}}}})
+                (NumV 1))
+  )
