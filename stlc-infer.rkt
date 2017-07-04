@@ -121,16 +121,12 @@
     [(NumE n) (values (NumT) const vars)]
     [(BoolE b) (values (BoolT) const vars)]
     [(PlusE l r)
-     (define-values (lty lconst lvars)
-       (type-infer l tenv const vars))
-     (define-values (rty rconst rvars)
-       (type-infer r tenv lconst lvars))
+     (define-values (lty lconst lvars) (type-infer l tenv const vars))
+     (define-values (rty rconst rvars) (type-infer r tenv lconst lvars))
      (values (NumT) (set-add (set-add rconst (Pair lty (NumT))) (Pair rty (NumT))) rvars)]
     [(MultE l r)
-     (define-values (lty lconst lvars)
-       (type-infer l tenv const vars))
-     (define-values (rty rconst rvars)
-       (type-infer r tenv lconst lvars))
+     (define-values (lty lconst lvars) (type-infer l tenv const vars))
+     (define-values (rty rconst rvars) (type-infer r tenv lconst lvars))
      (values (NumT) (set-add (set-add rconst (Pair lty (NumT))) (Pair rty (NumT))) rvars)]
     [(IdE x)
      (values (type-lookup x tenv) const vars)]
@@ -140,10 +136,8 @@
        (type-infer body (ext-tenv (TypeBinding arg new-tvar) tenv) const (add1 vars)))
      (values (ArrowT new-tvar bty) bconst bvars)]
     [(AppE fun arg)
-     (define-values (funty funconst funvars)
-       (type-infer fun tenv const vars))
-     (define-values (argty argconst argvars)
-       (type-infer arg tenv funconst funvars))
+     (define-values (funty funconst funvars) (type-infer fun tenv const vars))
+     (define-values (argty argconst argvars) (type-infer arg tenv funconst funvars))
      (define new-tvar (VarT (add1 argvars)))
      (values new-tvar (set-add (set-union funconst argconst)
                                (Pair funty (ArrowT argty new-tvar))) (add1 argvars))]))
@@ -153,7 +147,7 @@
   (foldl (λ (p acc) (type-subst acc (Pair-fst p) (Pair-snd p)))
          (if (VarT? ty) (lookup ty substs) ty)
          substs))
-  
+
 (define (typecheck exp tenv)
   (define-values (ty constraints vars) (type-infer exp tenv (set) 0))
   (reify (unify constraints) ty))
@@ -197,14 +191,14 @@
                 (list (Pair (VarT 'b) (NumT))))
   
   (check-equal? (unify-helper (list (Pair (ArrowT (VarT 't1) (VarT 't1))
-                                   (ArrowT (NumT) (VarT 't2))))
-                       (list))
+                                          (ArrowT (NumT) (VarT 't2))))
+                              (list))
                 (list (Pair (VarT 't2) (NumT)) (Pair (VarT 't1) (NumT))))
 
   (check-equal? (unify-helper (list (Pair (VarT 'a1) (ArrowT (NumT) (VarT 'a2)))
-                             (Pair (ArrowT (VarT 'a1) (VarT 'a2))
-                                   (ArrowT (ArrowT (VarT 'a3) (VarT 'a3)) (VarT 'a4))))
-                       (list))
+                                    (Pair (ArrowT (VarT 'a1) (VarT 'a2))
+                                          (ArrowT (ArrowT (VarT 'a3) (VarT 'a3)) (VarT 'a4))))
+                              (list))
                 (list (Pair (VarT 'a4) (NumT)) (Pair (VarT 'a2) (NumT))
                       (Pair (VarT 'a3) (NumT)) (Pair (VarT 'a1) (ArrowT (NumT) (VarT 'a2)))))
 
