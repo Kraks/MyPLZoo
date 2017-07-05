@@ -93,7 +93,7 @@
 (define not-occurs? (compose not occurs?))
 
 (define (unify-error t1 t2)
-  (error 'unify "can not unify: ~a and ~a" t1 t2))
+  (error 'type-error "can not unify: ~a and ~a" t1 t2))
 
 (define (unify-helper substs result)
   (match substs
