@@ -82,8 +82,10 @@
 
 ;; Type Checker
 
-(define (type-error e ty)
-  (error 'type-error "~a should has type: ~a" e ty))
+(define type-error
+  (case-lambda
+    [(msg) (error 'type-error "type error: ~a" msg)]
+    [(e ty) (error 'type-error "~a should has type: ~a" e ty)]))
 
 (define (type-check e tenv)
   (match e

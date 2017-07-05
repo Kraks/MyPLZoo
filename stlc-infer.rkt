@@ -164,8 +164,7 @@
     [(LamE arg body) (ClosureV arg body env)]
     [(AppE fun arg)
      (match (interp fun env)
-       [(ClosureV n body env*) (interp body (ext-env (Binding n (interp arg env)) env*))]
-       [else (error 'interp "not a function")])]))
+       [(ClosureV n body env*) (interp body (ext-env (Binding n (interp arg env)) env*))])]))
 
 (define mt-env empty)
 (define mt-tenv empty)

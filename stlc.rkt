@@ -74,10 +74,15 @@
 
 ;; Type Checker
 
+(define type-error
+  (case-lambda
+    [(msg) (error 'type-error "type error: ~a" msg)]
+    [(e ty) (error 'type-error "~a should has type: ~a" e ty)]))
+
 (define (typecheck-nums l r tenv)
   (match* ((typecheck l tenv) (typecheck r tenv))
     [((NumT) (NumT)) (NumT)]
-    [(_ _) (error 'typecheck "not number")]))
+    [(_ _) (type-error "not number")]))
 
 (define (typecheck exp tenv)
   (match exp
@@ -91,16 +96,16 @@
          (let ([thn-type (typecheck thn tenv)]
                [els-type (typecheck els tenv)])
            (if (equal? thn-type els-type) thn-type
-               (error 'typecheck "types of branches not agree")))
-         (error 'typecheck "not a boolean"))]
+               (type-error "types of branches not agree")))
+         (type-error "not a boolean"))]
     [(LamE arg arg-type body)
      (ArrowT arg-type (typecheck body (ext-tenv (TypeBinding arg arg-type) tenv)))]
     [(AppE fun arg)
      (match (typecheck fun tenv)
        [(ArrowT atype rtype) 
         (if (equal? atype (typecheck arg tenv)) rtype
-            (error 'typecheck "argument types not agree"))]
-       [_ (error 'typecheck "not a function")])]))
+            (type-error "argument types not agree"))]
+       [_ (type-error "not a function")])]))
 
 ;; Interpreter
 
@@ -117,13 +122,11 @@
     [(IfE cnd thn els)
      (match (interp cnd env)
        [(BoolV #t) (interp thn env)]
-       [(BoolV #f) (interp els env)]
-       [else (error 'interp "not a boolean")])]
+       [(BoolV #f) (interp els env)])]
     [(AppE fun arg)
      (match (interp fun env)
        [(ClosureV n body env*)
-        (interp body (ext-env (Binding n (interp arg env)) env*))]
-       [else (error 'interp "not a function")])]))
+        (interp body (ext-env (Binding n (interp arg env)) env*))])]))
 
 (define mt-env empty)
 (define mt-tenv empty)
