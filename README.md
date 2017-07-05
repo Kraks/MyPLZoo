@@ -34,7 +34,5 @@ Any comments or pull requests are welcomed.
 
 * `cpcf.rkt` Contract PCF with dependent contract #TODO#
 
-  ​
-
 ### Acknowledgements 
 Many thanks to Matthew Flatt and [CS6510@Utah](http://www.eng.utah.edu/~cs6510/schedule.html), where I first learned crucial knowledge on semantics and interpreters.
