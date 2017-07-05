@@ -20,7 +20,7 @@ Any comments or pull requests are welcomed.
 
 * `stlc-rec.rkt` STLC + Sum/Product tpye + Recursive function + Recursive type #TODO#
 
-* `systemf.rkt` System F, i.e. STLC + Polymorhpism
+* `systemf.rkt` System F, i.e. STLC + Universal quantification
 
 * `systemf-ext.rkt` System F + Existential type #TODO#
 
