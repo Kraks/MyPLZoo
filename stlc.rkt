@@ -56,7 +56,7 @@
     [(? symbol? x) (IdE x)]
     [`(+ ,l ,r) (PlusE (parse l) (parse r))]
     [`(* ,l ,r) (MultE (parse l) (parse r))]
-    [`(lambda ([,var : ,ty]) ,body)
+    [`(λ ([,var : ,ty]) ,body)
      (LamE var (parse-type ty) (parse body))]
     [`(let ([,var : ,ty ,val]) ,body)
      (AppE (LamE var (parse-type ty) (parse body)) (parse val))]
@@ -140,17 +140,17 @@
 
 (module+ test
   (check-equal? (run '1) (NumV 1))
-  (check-equal? (run '{lambda {[x : num]} x})
+  (check-equal? (run '{λ {[x : num]} x})
                 (ClosureV 'x (IdE 'x) '()))
-  (check-equal? (run '{{lambda {[x : num]} {+ x x}} 3})
+  (check-equal? (run '{{λ {[x : num]} {+ x x}} 3})
                 (NumV 6))
   (check-equal? (run '{let {[double : {num -> num}
-                                    {lambda {[x : num]} {+ x x}}]}
+                                    {λ {[x : num]} {+ x x}}]}
                         {double 3}})
                 (NumV 6))
   (check-equal? (run '{{if true
-                           {lambda {[x : num]} {+ x 1}}
-                           {lambda {[x : num]} {+ x 2}}}
+                           {λ {[x : num]} {+ x 1}}
+                           {λ {[x : num]} {+ x 2}}}
                        3})
                 (NumV 4))
   )

@@ -42,7 +42,7 @@
     [(? symbol? x) (IdE x)]
     [`(+ ,l ,r) (PlusE (parse l) (parse r))]
     [`(* ,l ,r) (MultE (parse l) (parse r))]
-    [`(lambda (,var) ,body) (LamE var (parse body))]
+    [`(λ (,var) ,body) (LamE var (parse body))]
     [`(let ([,var ,val]) ,body)
      (AppE (LamE var (parse body)) (parse val))]
     [`(if0 ,cnd ,thn ,els)
@@ -83,7 +83,7 @@
 
 (module+ test
   (check-equal? (run '1) (NumV 1))
-  (check-equal? (run '{let {[double {lambda {x} {+ x x}}]}
+  (check-equal? (run '{let {[double {λ {x} {+ x x}}]}
                         {double {double 3}}})
                 (NumV 12))
   (check-equal? (run '{let {[five {if0 0 5 6}]} five})

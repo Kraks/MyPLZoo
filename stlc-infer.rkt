@@ -59,7 +59,7 @@
     [`(* ,l ,r) (MultE (parse l) (parse r))]
     [`(let ([,var ,val]) ,body)
      (AppE (LamE var (parse body)) (parse val))]
-    [`(lambda (,var) ,body) (LamE var (parse body))]
+    [`(λ (,var) ,body) (LamE var (parse body))]
     [`(,fun ,arg) (AppE (parse fun) (parse arg))]
     [else (error 'parse "invalid expression")]))
 
@@ -209,38 +209,38 @@
      (λ vs1 (call-with-values l2
              (λ vs2 (check-true (andmap equal? vs1 vs2)))))))
 
-  (check-values-equal? (λ () (type-infer (parse '{lambda {x} {+ x 1}}) empty (set) 0))
+  (check-values-equal? (λ () (type-infer (parse '{λ {x} {+ x 1}}) empty (set) 0))
                        (λ () (values (ArrowT (VarT 1) (NumT))
                                      (set (Pair (VarT 1) (NumT)) (Pair (NumT) (NumT)))
                                      1)))
 
-  (check-values-equal? (λ () (type-infer (parse '{lambda {x} {lambda {y} {+ x y}}}) empty (set) 0))
+  (check-values-equal? (λ () (type-infer (parse '{λ {x} {λ {y} {+ x y}}}) empty (set) 0))
                        (λ () (values (ArrowT (VarT 1) (ArrowT (VarT 2) (NumT)))
                                      (set (Pair (VarT 1) (NumT)) (Pair (VarT 2) (NumT)))
                                      2)))
   
-  (check-values-equal? (λ () (type-infer (parse '{{lambda {x} x} 1}) empty (set) 0))
+  (check-values-equal? (λ () (type-infer (parse '{{λ {x} x} 1}) empty (set) 0))
                        (λ () (values (VarT 2)
                                      (set (Pair (ArrowT (VarT 1) (VarT 1)) (ArrowT (NumT) (VarT 2))))
                                      2)))
   
-  (check-values-equal? (λ () (type-infer (parse '{{lambda {f} {f 0}} {lambda {x} x}}) empty (set) 0))
+  (check-values-equal? (λ () (type-infer (parse '{{λ {f} {f 0}} {λ {x} x}}) empty (set) 0))
                        (λ () (values (VarT 4)
                                      (set (Pair (ArrowT (VarT 1) (VarT 2))
                                                 (ArrowT (ArrowT (VarT 3) (VarT 3)) (VarT 4)))
                                           (Pair (VarT 1) (ArrowT (NumT) (VarT 2))))
                                      4)))
 
-  (check-equal? (typecheck (parse '{{lambda {f} {f 0}} {lambda {x} x}}) mt-tenv)
+  (check-equal? (typecheck (parse '{{λ {f} {f 0}} {λ {x} x}}) mt-tenv)
                 (NumT))
 
-  (check-equal? (typecheck (parse '{lambda {x} {lambda {y} {+ x y}}}) mt-tenv)
+  (check-equal? (typecheck (parse '{λ {x} {λ {y} {+ x y}}}) mt-tenv)
                 (ArrowT (NumT) (ArrowT (NumT) (NumT))))
 
-  (check-equal? (run '{{{lambda {x} {lambda {y} {+ x y}}} 3} 7})
+  (check-equal? (run '{{{λ {x} {λ {y} {+ x y}}} 3} 7})
                 (NumV 10))
 
-  (check-exn exn:fail? (λ () (run '{{lambda {x} {x x}} {lambda {x} {x x}}})))
+  (check-exn exn:fail? (λ () (run '{{λ {x} {x x}} {λ {x} {x x}}})))
 
   (check-exn exn:fail? (λ () (run '{+ 3 true})))
   )

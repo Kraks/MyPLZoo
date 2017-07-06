@@ -74,12 +74,12 @@
     [`(* ,l ,r) (MultE (parse l) (parse r))]
     [`(fst ,e) (FstE (parse e))]
     [`(snd ,e) (SndE (parse e))]
-    [`(,l * ,r) (ProdE (parse l) (parse r))]
+    [`(,l × ,r) (ProdE (parse l) (parse r))]
     [`(in-left ,e : ,ty) (InLeftE (parse-type ty) (parse e))]
     [`(in-right ,e : ,ty) (InRightE (parse-type ty) (parse e))]
     [`(match ,e ((,v1) ,e1) ((,v2) ,e2))
      (MatchE (parse e) v1 (parse e1) v2 (parse e2))]
-    [`(lambda ([,var : ,ty]) ,body)
+    [`(λ ([,var : ,ty]) ,body)
      (LamE var (parse-type ty) (parse body))]
     [`(let ([,var : ,ty ,val]) ,body)
      (AppE (LamE var (parse-type ty) (parse body)) (parse val))]
@@ -93,7 +93,7 @@
     ['num (NumT)]
     ['bool (BoolT)]
     [`(sum ,t1 ,t2) (SumT (parse-type t1) (parse-type t2))]
-    [`(,tyfst * ,tysnd) (ProdT (parse-type tyfst) (parse-type tysnd))]
+    [`(,tyfst × ,tysnd) (ProdT (parse-type tyfst) (parse-type tysnd))]
     [`(,tyarg -> ,tyres) (ArrowT (parse-type tyarg) (parse-type tyres))]
     [else (error 'parse-type "invalid type")]))
 
@@ -194,9 +194,9 @@
 ;; Tests
 
 (module+ test
-  (check-equal? (parse '{3 * 4})
+  (check-equal? (parse '{3 × 4})
                 (ProdE (NumE 3) (NumE 4)))
-  (check-equal? (parse '{lambda {[x : {num * num}]} {fst x}})
+  (check-equal? (parse '{λ {[x : {num × num}]} {fst x}})
                 (LamE 'x (ProdT (NumT) (NumT)) (FstE (IdE 'x))))
   (check-equal? (parse '{in-left 3 : {sum num num}})
                 (InLeftE (SumT (NumT) (NumT)) (NumE 3)))
@@ -225,26 +225,26 @@
                 (NumT))
   
   (check-equal? (run '1) (NumV 1))
-  (check-equal? (run '{lambda {[x : num]} x})
+  (check-equal? (run '{λ {[x : num]} x})
                 (ClosureV 'x (IdE 'x) '()))
-  (check-equal? (run '{{lambda {[x : num]} {+ x x}} 3})
+  (check-equal? (run '{{λ {[x : num]} {+ x x}} 3})
                 (NumV 6))
   (check-equal? (run '{let {[double : {num -> num}
-                                    {lambda {[x : num]} {+ x x}}]}
+                                    {λ {[x : num]} {+ x x}}]}
                         {double 3}})
                 (NumV 6))
   (check-equal? (run '{{if true
-                           {lambda {[x : num]} {+ x 1}}
-                           {lambda {[x : num]} {+ x 2}}}
+                           {λ {[x : num]} {+ x 1}}
+                           {λ {[x : num]} {+ x 2}}}
                        3})
                 (NumV 4))
-  (check-equal? (run '{{lambda {[p : {num * bool}]}
+  (check-equal? (run '{{λ {[p : {num × bool}]}
                          {if {snd p} {fst p} {* 2 {fst p}}}}
-                       {3 * true}})
+                       {3 × true}})
                 (NumV 3))
-  (check-equal? (run '{{lambda {[p : {num * bool}]}
+  (check-equal? (run '{{λ {[p : {num × bool}]}
                          {if {snd p} {fst p} {* 2 {fst p}}}}
-                       {3 * false}})
+                       {3 × false}})
                 (NumV 6))
 
   (check-equal? (run '{match {in-left {in-left 3 : {sum num bool}} : {sum {sum num bool} bool}}
