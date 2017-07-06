@@ -205,10 +205,8 @@
              (λ () (unify (list (Pair (VarT 'a1) (ArrowT (VarT 'a1) (VarT 'a2)))))))
   
   (define (check-values-equal? l1 l2)
-    (call-with-values
-     l1
-     (λ vs1 (call-with-values
-             l2
+    (call-with-values l1
+     (λ vs1 (call-with-values l2
              (λ vs2 (check-true (andmap equal? vs1 vs2)))))))
 
   (check-values-equal? (λ () (type-infer (parse '{lambda {x} {+ x 1}}) empty (set) 0))
