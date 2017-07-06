@@ -16,7 +16,7 @@ Any comments or pull requests are welcomed.
 
 * `stlc-sum-prod.rkt` STLC + Sum type + Product type
 
-* `stlc-union-intsec.rkt` STLC + Union type + Intersection type #TODO#
+* `stlc-intsec.rkt` STLC + Intersection type #TODO#
 
 * `stlc-rec.rkt` STLC + Sum/Product tpye + Recursive function + Recursive type #TODO#
 
@@ -26,6 +26,8 @@ Any comments or pull requests are welcomed.
 
 * `systemf-omega.rkt` System F Omega #TODO#
 
+* `systemf-sub.rkt` System F Sub, i.e. System F with bounded quantifications
+
 * `hm.rkt` Hindley-Milner Type System, i.e. restricted System F with type inference #TODO#
 
 * `dependent.rkt` Dependent Type #TODO#
@@ -33,6 +35,8 @@ Any comments or pull requests are welcomed.
 * `refinement.rkt` Refinement Type #TODO#
 
 * `cpcf.rkt` Contract PCF with dependent contract #TODO#
+
+* `linear.rkt` Linear Type
 
 ### Acknowledgements 
 Many thanks to Matthew Flatt and [CS6510@Utah](http://www.eng.utah.edu/~cs6510/schedule.html), where I first learned crucial knowledge on semantics and interpreters.
