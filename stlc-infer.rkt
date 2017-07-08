@@ -31,14 +31,6 @@
 
 ;; Environment & Type Environment
 
-(define (make-lookup error-hint isa? name-of val-of)
-  (λ (name vals)
-    (cond [(empty? vals) (error error-hint "free variable")]
-          [else (if (and (isa? (first vals))
-                         (equal? name (name-of (first vals))))
-                    (val-of (first vals))
-                    ((make-lookup error-hint isa? name-of val-of) name (rest vals)))])))
-
 (struct Binding (name val) #:transparent)
 (define lookup (make-lookup 'lookup Binding? Binding-name Binding-val))
 (define ext-env cons)
