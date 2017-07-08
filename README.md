@@ -38,7 +38,7 @@ Any comments or pull requests are welcomed.
 
 * `gradual.rkt` STLC with Gradual Types #TODO#
 
-* `linear.rkt` Pure Linear Types #TODO#
+* `linear.rkt` Pure Linear Types 
 
 * `stlc+linear.rkt` STLC with Linear Types #TODO#
 
