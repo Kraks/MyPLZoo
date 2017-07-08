@@ -10,33 +10,37 @@ Any comments or pull requests are welcomed.
 
 * `stlc.rkt` Simple Typed Lambda Calculus (STLC)
 
-* `stlc-sub.rkt` STLC + Record + Subtyping
+* `stlc-infer.rkt` STLC with Type Inference
 
-* `stlc-infer.rkt` STLC + Type Inference
+* `stlc+sub.rkt` STLC + Record + Subtyping
 
-* `stlc-sum-prod.rkt` STLC + Sum type + Product type
+* `stlc+sum+prod.rkt` STLC + Sum type + Product type
 
-* `stlc-intsec.rkt` STLC + Intersection type #TODO#
+* `stlc+intsec.rkt` STLC + Intersection type #TODO#
 
-* `stlc-rec.rkt` STLC + Sum/Product tpye + Recursive function + Recursive type #TODO#
+* `stlc+rec.rkt` STLC + Sum/Product tpye + Recursive function + Recursive type #TODO#
 
 * `systemf.rkt` System F, i.e. STLC + Universal quantification
 
-* `systemf-ext.rkt` System F + Existential type #TODO#
+* `systemf+ext.rkt` System F + Existential type #TODO#
+
+* `systemf+sub.rkt` System F + Bounded quantifications and Subtyping #TODO#
 
 * `systemf-omega.rkt` System F Omega #TODO#
 
-* `systemf-sub.rkt` System F Sub, i.e. System F with bounded quantifications
-
 * `hm.rkt` Hindley-Milner Type System, i.e. restricted System F with type inference #TODO#
 
-* `dependent.rkt` Dependent Type #TODO#
+* `dependent.rkt` Dependent Types #TODO#
 
-* `refinement.rkt` Refinement Type #TODO#
+* `refinement.rkt` Refinement Types #TODO#
 
 * `cpcf.rkt` Contract PCF with dependent contract #TODO#
 
-* `linear.rkt` Linear Type
+* `gradual.rkt` STLC with Gradual Types #TODO#
+
+* `linear.rkt` Pure Linear Types #TODO#
+
+* `stlc+linear.rkt` STLC with Linear Types #TODO#
 
 ### Acknowledgements 
 Many thanks to Matthew Flatt and [CS6510@Utah](http://www.eng.utah.edu/~cs6510/schedule.html), where I first learned crucial knowledge on semantics and interpreters.
