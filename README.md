@@ -32,15 +32,16 @@ Any comments or pull requests are welcomed.
 
 * `dependent.rkt` Dependent Types #TODO#
 
+* `linear.rkt` Pure Linear Types 
+
+* `stlc+linear.rkt` STLC with Linear Types #TODO#
+
 * `refinement.rkt` Refinement Types #TODO#
 
 * `cpcf.rkt` Contract PCF with dependent contract #TODO#
 
 * `gradual.rkt` STLC with Gradual Types #TODO#
 
-* `linear.rkt` Pure Linear Types 
-
-* `stlc+linear.rkt` STLC with Linear Types #TODO#
 
 ### Acknowledgements 
 Many thanks to Matthew Flatt and [CS6510@Utah](http://www.eng.utah.edu/~cs6510/schedule.html), where I first learned crucial knowledge on semantics and interpreters.
