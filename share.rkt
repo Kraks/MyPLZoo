@@ -10,7 +10,7 @@
 
 (define (make-lookup error-hint isa? name-of val-of)
   (λ (name vals)
-    (cond [(empty? vals) (error error-hint "free variable")]
+    (cond [(empty? vals) (error error-hint "free variable: ~a" name)]
           [(and (isa? (first vals))
                 (equal? name (name-of (first vals))))
            (val-of (first vals))]
