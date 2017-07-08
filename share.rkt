@@ -5,7 +5,7 @@
 
 (define type-error
   (case-lambda
-    [(msg) (error 'type-error "type error: ~a" msg)]
+    [(msg) (error 'type-error "~a" msg)]
     [(e ty) (error 'type-error "~a should has type: ~a" e ty)]))
 
 (define (make-lookup error-hint isa? name-of val-of)

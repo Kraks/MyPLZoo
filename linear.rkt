@@ -103,7 +103,6 @@
         (values Δ1 Δ2))))
 
 (define (type-error-non-linear Δ)
-  
   (type-error (format "not used: ~a" (map TypeBinding-name Δ))))
 
 (define (typecheck e Δ)
