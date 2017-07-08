@@ -75,11 +75,11 @@
     [(NumE n) (set)]
     [(UnitLE) (set)]
     [(IdLE x) (set x)]
-    [(PlusLE l r) (set-union (free-vars l)
-                             (free-vars r))]
+    [(PlusLE l r)
+     (set-union (free-vars l) (free-vars r))]
+    [(ProdLE e1 e2)
+     (set-union (free-vars e1) (free-vars e2))]
     [(LetUnitLE e1 e2) (free-vars e2)]
-    [(ProdLE e1 e2) (set-union (free-vars e1)
-                               (free-vars e2))]
     [(LetProdLE x y e1 e2)
      (set-union (free-vars e1)
                 (set-subtract (free-vars e2)

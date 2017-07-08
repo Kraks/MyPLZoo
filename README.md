@@ -8,7 +8,7 @@ Any comments or pull requests are welcomed.
 
 * `uni-typed.rkt` Uni-typed Lambda Calculus with numbers and arithmetics
 
-* `stlc.rkt` Simple Typed Lambda Calculus (STLC)
+* `stlc.rkt` Simply Typed Lambda Calculus (STLC)
 
 * `stlc-infer.rkt` STLC with Type Inference
 
