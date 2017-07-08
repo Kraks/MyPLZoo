@@ -89,9 +89,6 @@
     [(AppLE e1 e2)
      (set-union (free-vars e1) (free-vars e2))]))
 
-(define (Δ-subtract Δ ds)
-  (filter (λ (b) (not (member (TypeBinding-name b) ds))) Δ))
-
 (define (partition-by Δ e1 e2)
   (define free-vars-e1 (set->list (free-vars e1)))
   (define free-vars-e2 (set->list (free-vars e2)))
@@ -118,27 +115,20 @@
                   (type-error-non-linear Δ))]
     [(PlusLE l r)
      (define-values (Δ1 Δ2) (partition-by Δ l r))
-     (define t1 (typecheck l Δ1))
-     (define t2 (typecheck r Δ2))
-     (match* (t1 t2)
+     (match* ((typecheck l Δ1) (typecheck r Δ2))
        [((NumT) (NumT)) (NumT)]
        [(_ _) (type-error "not a num")])]
     [(ProdLE l r)
      (define-values (Δ1 Δ2) (partition-by Δ l r))
-     (define t1 (typecheck l Δ1))
-     (define t2 (typecheck r Δ2))
-     (ProdLT t1 t2)]
+     (ProdLT (typecheck l Δ1) (typecheck r Δ2))]
     [(LetUnitLE u body)
      (define-values (Δ1 Δ2) (partition-by Δ u body))
-     (define u/t (typecheck u Δ1))
-     (define body/t (typecheck body Δ2))
-     (match u/t
-       [(UnitLT) body/t]
+     (match (typecheck u Δ1)
+       [(UnitLT) (typecheck body Δ2)]
        [else (type-error "not a unit type")])]
     [(LetProdLE x y p body)
      (define-values (Δ1 Δ2) (partition-by Δ p body))
-     (define pt (typecheck p Δ1))
-     (match pt
+     (match (typecheck p Δ1)
        [(ProdLT f/t s/t)
         (typecheck body (ext-tenv (TypeBinding x f/t)
                                   (ext-tenv (TypeBinding y s/t) Δ2)))]
@@ -147,8 +137,7 @@
      (ArrowLT arg/t (typecheck body (ext-tenv (TypeBinding arg arg/t) Δ)))]
     [(AppLE fun arg)
      (define-values (Δ1 Δ2) (partition-by Δ fun arg))
-     (define fun/t (typecheck fun Δ1))
-     (match fun/t
+     (match (typecheck fun Δ1)
        [(ArrowLT a/t r/t)
         (if (equal? a/t (typecheck arg Δ2)) r/t
             (type-error "argument types not agree"))]
@@ -163,8 +152,7 @@
     [(UnitLE) (UnitV)]
     [(PlusLE l r) (NumV (+ (NumV-n (interp l env))
                            (NumV-n (interp r env))))]
-    [(ProdLE l r) (ProdV (interp l env)
-                         (interp r env))]
+    [(ProdLE l r) (ProdV (interp l env) (interp r env))]
     [(LamLE arg t body) (ClosureV arg body env)]
     [(LetUnitLE u body) (interp body env)]
     [(LetProdLE x y p body)
