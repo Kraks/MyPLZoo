@@ -4,6 +4,7 @@
 ;; Guannan Wei <guannanwei@outlook.com>
 
 (require rackunit)
+(require "share.rkt")
 
 ;; Expressions
 
@@ -78,11 +79,6 @@
     [else (error 'parse-type "invalid type")]))
 
 ;; Type Checker
-
-(define type-error
-  (case-lambda
-    [(msg) (error 'type-error "type error: ~a" msg)]
-    [(e ty) (error 'type-error "~a should has type: ~a" e ty)]))
 
 (define (typecheck-nums l r tenv)
   (match* ((typecheck l tenv) (typecheck r tenv))

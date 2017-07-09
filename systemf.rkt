@@ -4,6 +4,7 @@
 ;; Guannan Wei <guannanwei@outlook.com>
 
 (require rackunit)
+(require "share.rkt")
 
 ;; Values
 
@@ -33,14 +34,6 @@
 (struct ForallT (name tbody) #:transparent)
 
 ;; Environment & Type Environment
-
-(define (make-lookup error-hint isa? name-of val-of)
-  (λ (name vals)
-    (cond [(empty? vals) (error error-hint "free variable")]
-          [(and (isa? (first vals))
-                (equal? name (name-of (first vals))))
-           (val-of (first vals))]
-          [else ((make-lookup error-hint isa? name-of val-of) name (rest vals))])))
 
 (struct Binding (name val) #:transparent)
 (define lookup (make-lookup 'lookup Binding? Binding-name Binding-val))
@@ -81,11 +74,6 @@
     [else (error 'parse-type "invalid type")]))
 
 ;; Type Checker
-
-(define type-error
-  (case-lambda
-    [(msg) (error 'type-error "type error: ~a" msg)]
-    [(e ty) (error 'type-error "~a should has type: ~a" e ty)]))
 
 (define (type-check e tenv)
   (match e
