@@ -5,6 +5,7 @@
 
 (require rackunit)
 (require racket/set)
+(require "share.rkt")
 
 ;; Expressions
 
@@ -195,33 +196,28 @@
 
   (check-exn exn:fail?
              (λ () (unify (list (Pair (VarT 'a1) (ArrowT (VarT 'a1) (VarT 'a2)))))))
-  
-  (define (check-values-equal? l1 l2)
-    (call-with-values l1
-     (λ vs1 (call-with-values l2
-             (λ vs2 (check-true (andmap equal? vs1 vs2)))))))
 
-  (check-values-equal? (λ () (type-infer (parse '{λ {x} {+ x 1}}) empty (set) 0))
-                       (λ () (values (ArrowT (VarT 1) (NumT))
-                                     (set (Pair (VarT 1) (NumT)) (Pair (NumT) (NumT)))
-                                     1)))
+  (check-values-equal? (type-infer (parse '{λ {x} {+ x 1}}) empty (set) 0)
+                       (values (ArrowT (VarT 1) (NumT))
+                               (set (Pair (VarT 1) (NumT)) (Pair (NumT) (NumT)))
+                               1))
 
-  (check-values-equal? (λ () (type-infer (parse '{λ {x} {λ {y} {+ x y}}}) empty (set) 0))
-                       (λ () (values (ArrowT (VarT 1) (ArrowT (VarT 2) (NumT)))
-                                     (set (Pair (VarT 1) (NumT)) (Pair (VarT 2) (NumT)))
-                                     2)))
+  (check-values-equal? (type-infer (parse '{λ {x} {λ {y} {+ x y}}}) empty (set) 0)
+                       (values (ArrowT (VarT 1) (ArrowT (VarT 2) (NumT)))
+                               (set (Pair (VarT 1) (NumT)) (Pair (VarT 2) (NumT)))
+                               2))
   
-  (check-values-equal? (λ () (type-infer (parse '{{λ {x} x} 1}) empty (set) 0))
-                       (λ () (values (VarT 2)
-                                     (set (Pair (ArrowT (VarT 1) (VarT 1)) (ArrowT (NumT) (VarT 2))))
-                                     2)))
+  (check-values-equal? (type-infer (parse '{{λ {x} x} 1}) empty (set) 0)
+                       (values (VarT 2)
+                               (set (Pair (ArrowT (VarT 1) (VarT 1)) (ArrowT (NumT) (VarT 2))))
+                               2))
   
-  (check-values-equal? (λ () (type-infer (parse '{{λ {f} {f 0}} {λ {x} x}}) empty (set) 0))
-                       (λ () (values (VarT 4)
-                                     (set (Pair (ArrowT (VarT 1) (VarT 2))
-                                                (ArrowT (ArrowT (VarT 3) (VarT 3)) (VarT 4)))
-                                          (Pair (VarT 1) (ArrowT (NumT) (VarT 2))))
-                                     4)))
+  (check-values-equal? (type-infer (parse '{{λ {f} {f 0}} {λ {x} x}}) empty (set) 0)
+                       (values (VarT 4)
+                               (set (Pair (ArrowT (VarT 1) (VarT 2))
+                                          (ArrowT (ArrowT (VarT 3) (VarT 3)) (VarT 4)))
+                                    (Pair (VarT 1) (ArrowT (NumT) (VarT 2))))
+                               4))
 
   (check-equal? (typecheck (parse '{{λ {f} {f 0}} {λ {x} x}}) mt-tenv)
                 (NumT))
