@@ -163,15 +163,14 @@
     [(MultE l r) (NumV (* (NumV-n (interp l env))
                           (NumV-n (interp r env))))]
     [(LamE n t body) (ClosureV n body env)]
-    [(AppE fun arg) (match (interp fun env)
-                      [(ClosureV n body env*)
-                       (interp body (ext-env (Binding n (interp arg env)) env*))]
-                      [else (error 'interp "not a function")])]
+    [(AppE fun arg)
+     (match (interp fun env)
+       [(ClosureV n body env*)
+        (interp body (ext-env (Binding n (interp arg env)) env*))])]
     [(TyLamE n body) (PolyV body env)]
     [(TyAppE tyfun tyarg)
      (match (interp tyfun env)
-       [(PolyV body env*) (interp body env*)]
-       [else (error 'interp "not a polymorphic function")])]))
+       [(PolyV body env*) (interp body env*)])]))
 
 (define mt-env empty)
 (define mt-tenv empty)
