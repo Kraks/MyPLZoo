@@ -77,7 +77,7 @@
     [`(Λ [,tvar] ,body) (TyLamE tvar (parse body))]
     [`(@ ,tyfun ,tyarg) (TyAppE (parse tyfun) (parse-type tyarg))]
     ; Existential Types
-    [`(pack [,ct ,body] : (∃ [,atvar] ,tbody))
+    [`(pack [,ct] ,body : (∃ [,atvar] ,tbody))
      (PackE (parse body) (parse-type ct) atvar (parse-type tbody))]
     [`(unpack ([,tvar] [,pvar ,pack]) ,body)
      (UnPackE tvar pvar (parse pack) (parse body))]
@@ -338,23 +338,23 @@
 
   ;; Test Existential Types
   
-  (check-equal? (parse '{pack [{num × bool} {λ {[x : num]} {x × false}}] :
-                              (∃ [a] {num -> a})})
+  (check-equal? (parse '{pack [{num × bool}] {λ {[x : num]} {x × false}} :
+                              {∃ [a] {num -> a}}})
                 (PackE
                  (LamE 'x (NumT) (ProdE (IdE 'x) (BoolE #f)))
                  (ProdT (NumT) (BoolT))
                  'a
                  (FunT (NumT) (VarT 'a))))
 
-  (check-equal? (parse-type '(∃ [a] {num -> a}))
+  (check-equal? (parse-type '{∃ [a] {num -> a}})
                 (ExtT 'a (FunT (NumT) (VarT 'a))))
 
-  (check-equal? (typecheck (parse '{pack [{num × bool} {λ {[x : num]} {x × false}}] :
-                                         (∃ [a] {num -> a})}) empty)
+  (check-equal? (typecheck (parse '{pack [{num × bool}] {λ {[x : num]} {x × false}} :
+                                         {∃ [a] {num -> a}}}) empty)
                 (ExtT 'a (FunT (NumT) (VarT 'a))))
 
-  (check-equal? (parse '{unpack ([b] [x {pack [{num × bool} {λ {[x : num]} {x × false}}] :
-                                              (∃ [a] {num -> a})}])
+  (check-equal? (parse '{unpack ([b] [x {pack [{num × bool}]
+                                              {λ {[x : num]} {x × false}} : {∃ [a] {num -> a}}}])
                                 {x 3}})
                 (UnPackE
                  'b
@@ -367,7 +367,7 @@
                  (AppE (IdE 'x) (NumE 3))))
 
   ;; Define a Counter with an initial value 1, a to-num function and a increment function
-  (define counter '{pack [num {1 × {{λ {[x : num]} x} × {λ {[x : num]} {+ x 1}}}}] :
+  (define counter '{pack [num] {1 × {{λ {[x : num]} x} × {λ {[x : num]} {+ x 1}}}} :
                          {∃ [Counter] {Counter × {{Counter -> num} × {Counter -> Counter}}}}})
 
   (check-equal? (typecheck (parse counter) empty)
