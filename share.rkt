@@ -20,8 +20,6 @@
            (val-of (first vals))]
           [else ((make-lookup error-hint isa? name-of val-of) name (rest vals))])))
 
-
-
 (define-syntax (check-values-equal? stx)
   (syntax-parse stx
     [(_ v1 v2)
