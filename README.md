@@ -22,7 +22,7 @@ Any comments or pull requests are welcomed.
 
 * `systemf.rkt` System F, i.e. STLC + Universal quantification
 
-* `systemf+ext.rkt` System F + Existential type #TODO#
+* `systemf+ext.rkt` System F + Existential types
 
 * `systemf+sub.rkt` System F + Bounded quantifications and Subtyping #TODO#
 
