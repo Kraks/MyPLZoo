@@ -200,7 +200,7 @@
     [(ProdT fst snd)
      (or (free-type-var? n fst) (free-type-var? n snd))]
     [(FunT a r)
-     (or (free-type-var? n a) (free-type-var? r a))]
+     (or (free-type-var? n a) (free-type-var? n r))]
     [(VarT n^) (equal? n^ n)]
     [(ForallT n^ body)
      (if (equal? n n^) #f (free-type-var? n body))]

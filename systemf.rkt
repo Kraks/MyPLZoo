@@ -146,7 +146,7 @@
     [(NumT) #f]
     [(BoolT) #f]
     [(FunT a r) (or (free-type-var? n a)
-                    (free-type-var? r a))]
+                    (free-type-var? n r))]
     [(VarT n^) (equal? n^ n)]
     [(ForallT n^ body)
      (if (equal? n n^) #f (free-type-var? n body))]))
