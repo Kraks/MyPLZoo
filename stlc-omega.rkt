@@ -139,7 +139,7 @@
            [(free-type-var? arg for)
             (define new-n (gen-name arg 1 for body))
             (define new-body (type-subst arg (VarT new-n) body))
-            (type-subst what for (OpAbsT new-n new-body))]
+            (type-subst what for (OpAbsT new-n arg/k new-body))]
            [else (OpAbsT arg arg/k (type-subst what for body))])]))
 
 (define (type-apply t)
