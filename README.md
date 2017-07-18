@@ -22,13 +22,13 @@ Any comments or pull requests are welcomed.
 
 * `stlc+rec.rkt` STLC + Sum/Product tpye + Recursive function + Recursive type #TODO#
 
-* `systemf.rkt` System F, i.e. STLC + Universal quantification
+* `systemf.rkt` System F
 
 * `systemf+ext.rkt` System F + Existential types
 
-* `systemf+sub.rkt` System F + Bounded quantifications and Subtyping #TODO#
-
 * `systemf-omega.rkt` System F Omega
+
+* `systemf+sub.rkt` System F + Bounded quantifications and Subtyping #TODO#
 
 * `hm.rkt` Hindley-Milner Type System, i.e. restricted System F with type inference #TODO#
 
