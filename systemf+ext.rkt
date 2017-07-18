@@ -38,7 +38,7 @@
 
 (struct NumT () #:transparent)
 (struct BoolT () #:transparent)
-(struct FunT (arg result) #:transparent)
+(struct ArrowT (arg result) #:transparent)
 (struct VarT (name) #:transparent)
 (struct ForallT (name tbody) #:transparent)
 (struct ExtT (name tbody) #:transparent)
@@ -89,7 +89,7 @@
     ['num (NumT)]
     ['bool (BoolT)]
     [(? symbol? tvar) (VarT tvar)]
-    [`(,tyarg -> ,tyres) (FunT (parse-type tyarg) (parse-type tyres))]
+    [`(,tyarg -> ,tyres) (ArrowT (parse-type tyarg) (parse-type tyres))]
     [`(∀ (,tvar) ,t) (ForallT tvar (parse-type t))]
     [`(∃ (,tvar) ,t) (ExtT tvar (parse-type t))]
     [`(,tyfst × ,tysnd) (ProdT (parse-type tyfst) (parse-type tysnd))]
@@ -110,11 +110,11 @@
     [(SndE p) (ProdT-snd/t (typecheck p tenv))]
     [(LamE arg-name arg-type body)
      (type-var-check arg-type tenv)
-     (FunT arg-type (typecheck body
+     (ArrowT arg-type (typecheck body
                                 (ext-tenv (TypeBinding arg-name arg-type) tenv)))]
     [(AppE fun arg)
      (match (typecheck fun tenv)
-       [(FunT arg-type res-type)
+       [(ArrowT arg-type res-type)
         (if (equal? arg-type (typecheck arg tenv))
             res-type
             (type-error arg arg-type))]
@@ -154,7 +154,7 @@
     [(ProdT lhs rhs)
      (type-var-check lhs tenv) (type-var-check rhs tenv)
      (values)]
-    [(FunT arg res)
+    [(ArrowT arg res)
      (type-var-check arg tenv) (type-var-check res tenv)
      (values)]
     [(VarT id) (type-var-lookup id tenv) (values)]
@@ -165,7 +165,7 @@
   (match in
     [(NumT) (NumT)]
     [(BoolT) (BoolT)]
-    [(FunT arg res) (FunT (type-subst what for arg)
+    [(ArrowT arg res) (ArrowT (type-subst what for arg)
                           (type-subst what for res))]
     [(VarT n) (if (equal? what n) for in)]
     [(ProdT fst snd) (ProdT (type-subst what for fst)
@@ -199,7 +199,7 @@
     [(BoolT) #f]
     [(ProdT fst snd)
      (or (free-type-var? n fst) (free-type-var? n snd))]
-    [(FunT a r)
+    [(ArrowT a r)
      (or (free-type-var? n a) (free-type-var? n r))]
     [(VarT n^) (equal? n^ n)]
     [(ForallT n^ body)
@@ -249,10 +249,10 @@
 
 (module+ test
   (check-equal? (parse-type '{a -> a})
-                (FunT (VarT 'a) (VarT 'a)))
+                (ArrowT (VarT 'a) (VarT 'a)))
 
   (check-equal? (parse-type '{∀ {a} {a -> a}})
-                (ForallT 'a (FunT (VarT 'a) (VarT 'a))))
+                (ForallT 'a (ArrowT (VarT 'a) (VarT 'a))))
               
   (check-equal? (parse '{let {[id : {∀ {a} {a -> a}}
                                   [Λ [a] {λ {[x : a]} x}]]}
@@ -260,7 +260,7 @@
                 (AppE
                  (LamE
                   'id
-                  (ForallT 'a (FunT (VarT 'a) (VarT 'a)))
+                  (ForallT 'a (ArrowT (VarT 'a) (VarT 'a)))
                   (PlusE
                    (AppE (TyAppE (IdE 'id) (NumT)) (NumE 1))
                    (AppE (TyAppE (IdE 'id) (NumT)) (NumE 2))))
@@ -344,14 +344,14 @@
                  (LamE 'x (NumT) (ProdE (IdE 'x) (BoolE #f)))
                  (ProdT (NumT) (BoolT))
                  'a
-                 (FunT (NumT) (VarT 'a))))
+                 (ArrowT (NumT) (VarT 'a))))
 
   (check-equal? (parse-type '{∃ [a] {num -> a}})
-                (ExtT 'a (FunT (NumT) (VarT 'a))))
+                (ExtT 'a (ArrowT (NumT) (VarT 'a))))
 
   (check-equal? (typecheck (parse '{pack [{num × bool}] {λ {[x : num]} {x × false}} :
                                          {∃ [a] {num -> a}}}) empty)
-                (ExtT 'a (FunT (NumT) (VarT 'a))))
+                (ExtT 'a (ArrowT (NumT) (VarT 'a))))
 
   (check-equal? (parse '{unpack ([b] [x {pack [{num × bool}]
                                               {λ {[x : num]} {x × false}} : {∃ [a] {num -> a}}}])
@@ -363,7 +363,7 @@
                   (LamE 'x (NumT) (ProdE (IdE 'x) (BoolE #f)))
                   (ProdT (NumT) (BoolT))
                   'a
-                  (FunT (NumT) (VarT 'a)))
+                  (ArrowT (NumT) (VarT 'a)))
                  (AppE (IdE 'x) (NumE 3))))
 
   ;; Define a Counter with an initial value 1, a to-num function and a increment function
@@ -375,7 +375,7 @@
                  'Counter
                  (ProdT
                   (VarT 'Counter)
-                  (ProdT (FunT (VarT 'Counter) (NumT)) (FunT (VarT 'Counter) (VarT 'Counter))))))
+                  (ProdT (ArrowT (VarT 'Counter) (NumT)) (ArrowT (VarT 'Counter) (VarT 'Counter))))))
 
   ;; Unpack Counter, retrieve the initial value, increase it and turn to num
   (check-equal? (typecheck (parse `{unpack {[C] [counter ,counter]}

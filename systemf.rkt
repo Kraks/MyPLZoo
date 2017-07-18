@@ -29,7 +29,7 @@
 
 (struct NumT () #:transparent)
 (struct BoolT () #:transparent)
-(struct FunT (arg result) #:transparent)
+(struct ArrowT (arg result) #:transparent)
 (struct VarT (name) #:transparent)
 (struct ForallT (name tbody) #:transparent)
 
@@ -69,7 +69,7 @@
     ['num (NumT)]
     ['bool (BoolT)]
     [(? symbol? tvar) (VarT tvar)]
-    [`(,tyarg -> ,tyres) (FunT (parse-type tyarg) (parse-type tyres))]
+    [`(,tyarg -> ,tyres) (ArrowT (parse-type tyarg) (parse-type tyres))]
     [`(∀ (,tvar) ,t) (ForallT tvar (parse-type t))]
     [else (error 'parse-type "invalid type")]))
 
@@ -84,11 +84,11 @@
     [(MultE l r) (type-check-nums l r tenv)]
     [(LamE arg-name arg-type body)
      (type-var-check arg-type tenv)
-     (FunT arg-type (type-check body
+     (ArrowT arg-type (type-check body
                                 (ext-tenv (TypeBinding arg-name arg-type) tenv)))]
     [(AppE fun arg)
      (match (type-check fun tenv)
-       [(FunT arg-type res-type)
+       [(ArrowT arg-type res-type)
         (if (equal? arg-type (type-check arg tenv))
             res-type
             (type-error arg arg-type))]
@@ -112,7 +112,7 @@
   (match arg-type
     [(NumT) (values)]
     [(BoolT) (values)]
-    [(FunT arg res)
+    [(ArrowT arg res)
      (type-var-check arg tenv) (type-var-check res tenv)
      (values)]
     [(VarT id) (type-var-lookup id tenv) (values)]
@@ -122,7 +122,7 @@
   (match in
     [(NumT) (NumT)]
     [(BoolT) (BoolT)]
-    [(FunT arg res) (FunT (type-subst what for arg)
+    [(ArrowT arg res) (ArrowT (type-subst what for arg)
                           (type-subst what for res))]
     [(VarT n) (if (equal? what n) for in)]
     [(ForallT n body)
@@ -145,7 +145,7 @@
   (match ty
     [(NumT) #f]
     [(BoolT) #f]
-    [(FunT a r) (or (free-type-var? n a)
+    [(ArrowT a r) (or (free-type-var? n a)
                     (free-type-var? n r))]
     [(VarT n^) (equal? n^ n)]
     [(ForallT n^ body)
@@ -183,10 +183,10 @@
 
 (module+ test
   (check-equal? (parse-type '{a -> a})
-                (FunT (VarT 'a) (VarT 'a)))
+                (ArrowT (VarT 'a) (VarT 'a)))
 
   (check-equal? (parse-type '{∀ {a} {a -> a}})
-                (ForallT 'a (FunT (VarT 'a) (VarT 'a))))
+                (ForallT 'a (ArrowT (VarT 'a) (VarT 'a))))
               
   (check-equal? (parse '{let {[id : {∀ {a} {a -> a}}
                                   [Λ [a] {λ {[x : a]} x}]]}
@@ -194,7 +194,7 @@
                 (AppE
                  (LamE
                   'id
-                  (ForallT 'a (FunT (VarT 'a) (VarT 'a)))
+                  (ForallT 'a (ArrowT (VarT 'a) (VarT 'a)))
                   (PlusE
                    (AppE (TyAppE (IdE 'id) (NumT)) (NumE 1))
                    (AppE (TyAppE (IdE 'id) (NumT)) (NumE 2))))
