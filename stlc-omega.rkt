@@ -144,8 +144,10 @@
 
 (define (norm t)
   (match t
-    [(OpAppT (OpAbsT arg arg/k body) t)
-     (type-subst arg t body)]
+    [(OpAppT t1 t2)
+     (match (norm t1)
+       [(OpAbsT arg arg/k body) (type-subst arg t2 body)]
+       [else (error 'type-norm "can not substitute")])]
     [else t]))
 
 (define (type-equal? t1 t2)
@@ -254,5 +256,20 @@
                                     {λ {[x : num]} x}})
                            empty)
                 (NumT))
-                             
+
+  (check-equal? (run '{{λ {[id : {{Λ {[x : *]} {x -> x}} num}]}
+                         {+ 4 {id 3}}}
+                       {λ {[x : num]} x}})
+                (NumV 7))
+
+  (check-equal? (run '{let {[plus : {{{Λ {[x : *]}
+                                         {Λ {[y : *]}
+                                            {x -> {y -> x}}}}
+                                      num} num}
+                                  {λ {[x : num]}
+                                    {λ {[y : num]}
+                                      {+ x y}}}]}
+                        {{plus 1} 2}})
+                (NumV 3))
+                            
   )
