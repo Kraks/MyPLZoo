@@ -6,13 +6,6 @@
 (require rackunit)
 (require "share.rkt")
 
-;; Values
-
-(struct NumV (n) #:transparent)
-(struct BoolV (b) #:transparent)
-(struct ClosureV (arg body env) #:transparent)
-(struct PolyV (body env) #:transparent)
-
 ;; Expressions
 
 (struct NumE (n) #:transparent)
@@ -29,9 +22,17 @@
 
 (struct NumT () #:transparent)
 (struct BoolT () #:transparent)
-(struct ArrowT (arg result) #:transparent)
 (struct VarT (name) #:transparent)
-(struct ForallT (name tbody) #:transparent)
+(struct ArrowT (arg result) #:transparent)
+(struct ForallT (name tybody) #:transparent)
+
+;; Values
+
+(struct NumV (n) #:transparent)
+(struct BoolV (b) #:transparent)
+(struct PolyV (body env) #:transparent)
+(struct ClosureV (arg body env) #:transparent)
+
 
 ;; Environment & Type Environment
 
@@ -70,7 +71,7 @@
     ['bool (BoolT)]
     [(? symbol? tvar) (VarT tvar)]
     [`(,tyarg -> ,tyres) (ArrowT (parse-type tyarg) (parse-type tyres))]
-    [`(∀ (,tvar) ,t) (ForallT tvar (parse-type t))]
+    [`(∀ [,tvar] ,t) (ForallT tvar (parse-type t))]
     [else (error 'parse-type "invalid type")]))
 
 ;; Type Checker
