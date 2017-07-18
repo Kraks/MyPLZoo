@@ -1,6 +1,6 @@
 #lang racket
 
-;; Simple Typed Lamdba Calculus with Sum Types and Product Types
+;; Simply Typed Lamdba Calculus with Sum Types and Product Types
 ;; Guannan Wei <guannanwei@outlook.com>
 
 (require rackunit)

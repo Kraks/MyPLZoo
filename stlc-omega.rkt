@@ -1,6 +1,6 @@
 #lang racket
 
-;; Simple Typed Lamdba Calculus with Type Operators
+;; Simply Typed Lamdba Calculus with Type Operators
 ;; Guannan Wei <guannanwei@outlook.com>
 
 (require rackunit)

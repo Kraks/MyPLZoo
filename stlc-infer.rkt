@@ -1,6 +1,6 @@
 #lang racket
 
-;; Type Inference for Simple Typed Lambda Calculus
+;; Type Inference for Simply Typed Lambda Calculus
 ;; Guannan Wei <guannanwei@outlook.com>
 
 (require rackunit)
