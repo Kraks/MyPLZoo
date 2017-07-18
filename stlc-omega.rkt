@@ -142,26 +142,30 @@
             (type-subst what for (OpAbsT new-n new-body))]
            [else (OpAbsT arg arg/k (type-subst what for body))])]))
 
-(define (norm t)
+(define (type-apply t)
   (match t
     [(OpAppT t1 t2)
-     (match (norm t1)
+     (match (type-apply t1)
        [(OpAbsT arg arg/k body) (type-subst arg t2 body)]
        [else (error 'type-norm "can not substitute")])]
     [else t]))
 
 (define (type-equal? t1 t2)
-  (match* (t1 t2)
+  (define t1^ (type-apply t1))
+  (define t2^ (type-apply t2))
+  (match* (t1^ t2^)
     [((NumT) (NumT)) #true]
     [((BoolT) (BoolT)) #true]
+    [((VarT x) (VarT y)) (equal? x y)]
     [((ArrowT t11 t12) (ArrowT t21 t22))
      (and (type-equal? t11 t21) (type-equal? t12 t22))]
     [((OpAbsT arg1 arg/k1 body1)
       (OpAbsT arg2 arg/k2 body2))
-     (type-equal? body1 body2)]
+     ;; TODO alpha renaming
+     (and (equal? arg/k1 arg/k2) (type-equal? body1 body2))]
     [((OpAppT t11 t12) (OpAppT t21 t22))
      (and (type-equal? t11 t21) (type-equal? t12 t22))]
-    [(_ _) (type-equal? (norm t1) (norm t2))]))
+    [(_ _) #false]))
 
 (define (typecheck-nums l r tenv)
   (if (and (type-equal? (NumT) (typecheck l tenv))
@@ -189,7 +193,7 @@
          (ArrowT arg-type (typecheck body (ext-tenv (TypeBinding arg arg-type) tenv)))
          (error 'kind-check "not a star kind"))]
     [(AppE fun arg)
-     (match (norm (typecheck fun tenv))
+     (match (type-apply (typecheck fun tenv))
        [(ArrowT atype rtype)
         (if (type-equal? atype (typecheck arg tenv))
             rtype
@@ -247,6 +251,9 @@
                             (parse-type '{Λ {[x : *]} {Λ {[y : *]} {x -> {z -> y}}}}))
                 (OpAbsT 'x (StarK)
                         (OpAbsT 'y (StarK) (ArrowT (VarT 'x) (ArrowT (NumT) (VarT 'y))))))
+
+  (check-true (type-equal? (parse-type '{{Λ {[x : *]} {x -> x}} num})
+                           (parse-type '{{Λ {[y : *]} {y -> y}} num})))
 
   (check-true (type-equal? (parse-type '{{Λ {[x : *]} {x -> x}} num})
                            (parse-type '{num -> num})))
