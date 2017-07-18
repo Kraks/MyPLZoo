@@ -191,7 +191,7 @@
     [(LamE arg arg-type body)
      (if (equal? (StarK) (kind-check arg-type tenv))
          (ArrowT arg-type (typecheck body (ext-tenv (TypeBinding arg arg-type) tenv)))
-         (error 'kind-check "not a star kind"))]
+         (error 'kind-check "not a * kind"))]
     [(AppE fun arg)
      (match (type-apply (typecheck fun tenv))
        [(ArrowT atype rtype)
