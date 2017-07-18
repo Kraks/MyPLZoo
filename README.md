@@ -16,6 +16,8 @@ Any comments or pull requests are welcomed.
 
 * `stlc+sum+prod.rkt` STLC + Sum type + Product type
 
+* `stlc-omega.rkt` STLC + Type Operator
+
 * `stlc+intsec.rkt` STLC + Intersection type #TODO#
 
 * `stlc+rec.rkt` STLC + Sum/Product tpye + Recursive function + Recursive type #TODO#
@@ -26,7 +28,7 @@ Any comments or pull requests are welcomed.
 
 * `systemf+sub.rkt` System F + Bounded quantifications and Subtyping #TODO#
 
-* `systemf-omega.rkt` System F Omega #TODO#
+* `systemf-omega.rkt` System F Omega
 
 * `hm.rkt` Hindley-Milner Type System, i.e. restricted System F with type inference #TODO#
 
