@@ -32,7 +32,9 @@ Any comments or pull requests are welcomed.
 
 * `hm.rkt` Hindley-Milner Type System, i.e. restricted System F with type inference #TODO#
 
-* `dependent.rkt` Dependent Types #TODO#
+* `lf.rkt` First-Order Dependent Types, i.e. λLF #TODO#
+
+* `lf+sum.rkt` λLF + Dependent Sum (Sigma) Types #TODO#
 
 * `linear.rkt` Pure Linear Types 
 
