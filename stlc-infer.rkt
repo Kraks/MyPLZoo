@@ -219,11 +219,21 @@
                                     (Pair (VarT 1) (ArrowT (NumT) (VarT 2))))
                                4))
 
+  (check-values-equal? (type-infer (parse '{λ {x} x}) empty (set) 0)
+                       (values (ArrowT (VarT 1) (VarT 1))
+                               (set)
+                               1))
+  
   (check-equal? (typecheck (parse '{{λ {f} {f 0}} {λ {x} x}}) mt-tenv)
                 (NumT))
 
   (check-equal? (typecheck (parse '{λ {x} {λ {y} {+ x y}}}) mt-tenv)
                 (ArrowT (NumT) (ArrowT (NumT) (NumT))))
+
+  ; λf.λu.u (f u) :: ((a -> b) -> a) -> (a -> b) -> b
+  (check-equal? (typecheck (parse '{λ {f} {λ {u} {u {f u}}}}) mt-tenv)
+                (ArrowT (ArrowT (ArrowT (VarT 3) (VarT 4)) (VarT 3))
+                        (ArrowT (ArrowT (VarT 3) (VarT 4)) (VarT 4))))
 
   (check-equal? (run '{{{λ {x} {λ {y} {+ x y}}} 3} 7})
                 (NumV 10))
