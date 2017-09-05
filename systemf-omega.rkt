@@ -388,4 +388,8 @@
                                {{,make-pair-num/bool 1} true}]}
                         {,snd-num/bool p}})
                 (BoolV #t))
+
+  (parse '{if true
+              {Λ {[A : *]} {λ {[x : A]} x}}
+              {Λ {[B : *]} {λ {[y : B]} y}}})
   )

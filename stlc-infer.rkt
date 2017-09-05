@@ -241,4 +241,4 @@
   (check-exn exn:fail? (λ () (run '{{λ {x} {x x}} {λ {x} {x x}}})))
 
   (check-exn exn:fail? (λ () (run '{+ 3 true})))
-  )
+)
