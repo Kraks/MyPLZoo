@@ -245,6 +245,7 @@
                 (ArrowT (ArrowT (ArrowT (VarT 3) (VarT 4)) (VarT 3))
                         (ArrowT (ArrowT (VarT 3) (VarT 4)) (VarT 4))))
 
+  ; λx.λy.x (x y) :: (a -> a) -> a -> a
   (check-equal? (typecheck (parse '{λ {x} {λ {y} {x {x y}}}}) mt-tenv)
                 (ArrowT (ArrowT (VarT 2) (VarT 2))
                         (ArrowT (VarT 2) (VarT 2))))
