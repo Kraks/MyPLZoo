@@ -136,10 +136,20 @@
                                (Pair funty (ArrowT argty new-tvar))) (add1 argvars))]))
 
 (define (reify substs ty)
-  (define lookup (make-lookup 'pair-lookup Pair? Pair-fst Pair-snd))
-  (foldl (λ (p acc) (type-subst acc (Pair-fst p) (Pair-snd p)))
-         (if (VarT? ty) (lookup ty substs) ty)
-         substs))
+  (define (lookup/default x substs)
+    (cond [(empty? substs) x]
+          [(equal? (Pair-fst (first substs)) x)
+           (Pair-snd (first substs))]
+          [else (lookup/default x (rest substs))]))
+  
+  (match ty
+    [(NumT) (NumT)]
+    [(BoolT) (BoolT)]
+    [(VarT x)
+     (define ans (lookup/default ty substs))
+     (if (ArrowT? ans) (reify substs ans) ans)]
+    [(ArrowT t1 t2)
+     (ArrowT (reify substs t1) (reify substs t2))]))
 
 (define (typecheck exp tenv)
   (define-values (ty constraints vars) (type-infer exp tenv (set) 0))
@@ -235,6 +245,10 @@
                 (ArrowT (ArrowT (ArrowT (VarT 3) (VarT 4)) (VarT 3))
                         (ArrowT (ArrowT (VarT 3) (VarT 4)) (VarT 4))))
 
+  (check-equal? (typecheck (parse '{λ {x} {λ {y} {x {x y}}}}) mt-tenv)
+                (ArrowT (ArrowT (VarT 2) (VarT 2))
+                        (ArrowT (VarT 2) (VarT 2))))
+  
   (check-equal? (run '{{{λ {x} {λ {y} {+ x y}}} 3} 7})
                 (NumV 10))
 
