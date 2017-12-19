@@ -249,10 +249,23 @@
   (check-equal? (typecheck (parse '{λ {x} {λ {y} {x {x y}}}}) mt-tenv)
                 (ArrowT (ArrowT (VarT 2) (VarT 2))
                         (ArrowT (VarT 2) (VarT 2))))
+
+  ; λx.λy.x (y x) :: (a -> b) -> ((a -> b) -> a) -> b
+  (check-equal? (typecheck (parse '{λ {x} {λ {y} {x {y x}}}}) mt-tenv)
+                (ArrowT
+                 (ArrowT (VarT 3) (VarT 4))
+                 (ArrowT (ArrowT (ArrowT (VarT 3) (VarT 4)) (VarT 3))
+                         (VarT 4))))
+
+  ;; λx.λy.y (y x) :: a -> (a -> a) -> a
+  (check-equal? (typecheck (parse '{λ {x} {λ {y} {y {y x}}}}) mt-tenv)
+                (ArrowT (VarT 1) (ArrowT (ArrowT (VarT 1) (VarT 1)) (VarT 1))))
   
   (check-equal? (run '{{{λ {x} {λ {y} {+ x y}}} 3} 7})
                 (NumV 10))
 
+  (check-exn exn:fail? (λ () (typecheck (parse '{λ {x} {λ {y} {{x y} x}}}) mt-tenv)))
+  
   (check-exn exn:fail? (λ () (run '{{λ {x} {x x}} {λ {x} {x x}}})))
 
   (check-exn exn:fail? (λ () (run '{+ 3 true})))
