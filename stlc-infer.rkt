@@ -264,6 +264,26 @@
   (check-equal? (run '{{{λ {x} {λ {y} {+ x y}}} 3} 7})
                 (NumV 10))
 
+  ;; (a -> (b -> c)) -> (a -> b) -> (a -> c)
+  (define S '{λ {x} {λ {y} {λ {z} {{x z} {y z}}}}})
+  (check-equal? (typecheck (parse S) mt-tenv)
+                (ArrowT (ArrowT (VarT 3) (ArrowT (VarT 5) (VarT 6)))
+                        (ArrowT (ArrowT (VarT 3) (VarT 5))
+                                (ArrowT (VarT 3) (VarT 6)))))
+  
+  ;; a -> b -> a
+  (define K '{λ {x} {λ {y} x}})
+  (check-equal? (typecheck (parse K) mt-tenv)
+                (ArrowT (VarT 1) (ArrowT (VarT 2) (VarT 1))))
+
+  ;; (a -> b) -> (a -> a)
+  (check-equal? (typecheck (parse `(,S ,K)) mt-tenv)
+                (ArrowT (ArrowT (VarT 6) (VarT 5)) (ArrowT (VarT 6) (VarT 6))))
+
+  ;; a -> a
+  (check-equal? (typecheck (parse `((,S ,K) ,K)) mt-tenv)
+                (ArrowT (VarT 6) (VarT 6)))
+
   (check-exn exn:fail? (λ () (typecheck (parse '{λ {x} {λ {y} {{x y} x}}}) mt-tenv)))
   
   (check-exn exn:fail? (λ () (run '{{λ {x} {x x}} {λ {x} {x x}}})))
