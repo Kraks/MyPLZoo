@@ -2,7 +2,7 @@
 
 Interpreters and type checkers for various toy programming languages written in Racket.
 
-Each file is a standalone implementation, including a parser for S-expression based syntax, a type checker if necessary, an interpreter and a set of test cases written in that language.
+Each file is a standalone and runnable implementation, including a parser for S-expression based syntax, a type checker if necessary, an interpreter and a set of test cases written in that language.
 
 * `uni-typed.rkt` Uni-typed lambda calculus with numbers and arithmetics
 
