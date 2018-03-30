@@ -94,7 +94,6 @@
 
 ;; Tests
 
-
 (check-equal? (run '{+ 1 2}) (NumV 3))
 (check-equal? (run '{* 2 3}) (NumV 6))
 (check-equal? (run '{{λ {x} {+ x x}} 3})
