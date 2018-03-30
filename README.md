@@ -6,44 +6,44 @@ Each file is a standalone implementation, including a parser for S-expression ba
 
 Any comments or pull requests are welcomed.
 
-* `uni-typed.rkt` Uni-typed Lambda Calculus with numbers and arithmetics
+* `uni-typed.rkt` Uni-typed lambda calculus with numbers and arithmetics
 
-* `stlc.rkt` Simply Typed Lambda Calculus (STLC)
+* `stlc.rkt` Simply typed lambda calculus (STLC)
 
-* `stlc-infer.rkt` STLC with Type Inference
+* `stlc-infer.rkt` STLC with type inference
 
-* `stlc+sub.rkt` STLC + Record + Subtyping
+* `stlc+sub.rkt` STLC + record + subtyping
 
-* `stlc+sum+prod.rkt` STLC + Sum type + Product type
+* `stlc+sum+prod.rkt` STLC + sum/product types
 
-* `stlc-omega.rkt` STLC + Type Operator
+* `stlc-omega.rkt` STLC + type operator
 
-* `stlc+intsec.rkt` STLC + Intersection type #TODO#
+* `stlc+intsec.rkt` STLC + intersection types #TODO#
 
-* `stlc+rec.rkt` STLC + Sum/Product tpye + Recursive function + Recursive type #TODO#
+* `stlc+rec.rkt` STLC + sum/product tpye + recursive function + recursive types #TODO#
 
 * `systemf.rkt` System F
 
-* `systemf+ext.rkt` System F + Existential types
+* `systemf+ext.rkt` System F + existential types
 
-* `systemf-omega.rkt` System F Omega
+* `systemf-omega.rkt` System F-omega
 
-* `systemf+sub.rkt` System F + Bounded quantifications and Subtyping #TODO#
+* `systemf+sub.rkt` System F + bounded quantifications and Subtyping #TODO#
 
-* `hm.rkt` Hindley-Milner Type System, i.e. restricted System F with type inference #TODO#
+* `letpoly.rkt` STLC with type inference and let-polymorphism #TODO#
 
-* `lf.rkt` First-Order Dependent Types, i.e. λLF #TODO#
+* `lf.rkt` First-order dependent types, i.e. λLF #TODO#
 
-* `lf+sum.rkt` λLF + Dependent Sum (Sigma) Types #TODO#
+* `lf+sum.rkt` λLF + sigma types #TODO#
 
-* `linear.rkt` Pure Linear Types 
+* `linear.rkt` Pure linear types 
 
-* `stlc+linear.rkt` STLC with Linear Types #TODO#
+* `stlc+linear.rkt` STLC with linear types #TODO#
 
-* `refinement.rkt` Refinement Types #TODO#
+* `refinement.rkt` Refinement types #TODO#
 
 * `cpcf.rkt` Contract PCF with dependent contract #TODO#
 
-* `gradual.rkt` STLC with Gradual Types #TODO#
+* `gradual.rkt` STLC with gradual types #TODO#
 
 
