@@ -1,10 +1,8 @@
-## Type Systems in Small Pieces
+## My PL Zoo
 
-Type checkers and interpreters for various toy typed languages written in Racket.
+Interpreters and type checkers for various toy programming languages written in Racket.
 
-Each file is a standalone implementation, including a parser for S-expression based syntax, a type checker if any, an interpreter and a bunch of examples written in this language.
-
-Any comments or pull requests are welcomed.
+Each file is a standalone implementation, including a parser for S-expression based syntax, a type checker if necessary, an interpreter and a set of test cases written in that language.
 
 * `uni-typed.rkt` Uni-typed lambda calculus with numbers and arithmetics
 
@@ -45,5 +43,4 @@ Any comments or pull requests are welcomed.
 * `cpcf.rkt` Contract PCF with dependent contract #TODO#
 
 * `gradual.rkt` STLC with gradual types #TODO#
-
 
