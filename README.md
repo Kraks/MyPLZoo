@@ -6,6 +6,8 @@ Each file is a standalone implementation, including a parser for S-expression ba
 
 * `uni-typed.rkt` Uni-typed lambda calculus with numbers and arithmetics
 
+* `interp-cps.rkt` An interpreter that supports `call/cc` operator
+
 * `stlc.rkt` Simply typed lambda calculus (STLC)
 
 * `stlc-infer.rkt` STLC with type inference
