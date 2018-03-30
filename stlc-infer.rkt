@@ -68,14 +68,14 @@
     [(ArrowT t1 t2) (ArrowT (type-subst t1 src dst)
                             (type-subst t2 src dst))]))
 
-(define (subst pairs src dst)
-  (cond [(empty? pairs) pairs]
-        [else (define p (first pairs))
-              (define pf (Eq-fst p))
-              (define ps (Eq-snd p))
-              (cons (Eq (type-subst pf src dst)
-                          (type-subst ps src dst))
-                    (subst (rest pairs) src dst))]))
+(define (subst eqs src dst)
+  (cond [(empty? eqs) eqs]
+        [else (define eq (first eqs))
+              (define eqfst (Eq-fst eq))
+              (define eqsnd (Eq-snd eq))
+              (cons (Eq (type-subst eqfst src dst)
+                        (type-subst eqsnd src dst))
+                    (subst (rest eqs) src dst))]))
 
 (define (occurs? t in)
   (match in
