@@ -288,6 +288,8 @@
   ;; a -> a
   (check-equal? (typecheck (parse `((,S ,K) ,K)) mt-tenv)
                 (ArrowT (VarT 6) (VarT 6)))
+  
+  (check-exn exn:fail? (λ () (typecheck (parse '{{λ {id} {{id id} 3}} {λ {x} x}}) mt-tenv)))
 
   (check-exn exn:fail? (λ () (typecheck (parse '{λ {x} {λ {y} {{x y} x}}}) mt-tenv)))
   
