@@ -4,6 +4,7 @@
 ;; Guannan Wei <guannanwei@outlook.com>
 
 (require rackunit)
+(require "share.rkt")
 
 ;; Expressions
 
