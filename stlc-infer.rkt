@@ -58,7 +58,7 @@
 
 ;; Type Inference
 
-(struct Pair (fst snd) #:transparent)
+(struct Eq (fst snd) #:transparent)
 
 (define (type-subst in src dst)
   (match in
@@ -71,9 +71,9 @@
 (define (subst pairs src dst)
   (cond [(empty? pairs) pairs]
         [else (define p (first pairs))
-              (define pf (Pair-fst p))
-              (define ps (Pair-snd p))
-              (cons (Pair (type-subst pf src dst)
+              (define pf (Eq-fst p))
+              (define ps (Eq-snd p))
+              (cons (Eq (type-subst pf src dst)
                           (type-subst ps src dst))
                     (subst (rest pairs) src dst))]))
 
@@ -91,20 +91,19 @@
 (define (unify-helper substs result)
   (match substs
     ['() result]
-    [(list (Pair fst snd) rest ...)
+    [(list (Eq fst snd) rest ...)
      (match* (fst snd)
-       [((NumT) (NumT)) (unify-helper rest result)]
-       [((BoolT) (BoolT)) (unify-helper rest result)]
        [((VarT x) t)
         (if (not-occurs? fst snd)
-            (unify-helper (subst rest fst snd) (cons (Pair fst snd) result))
+            (unify-helper (subst rest fst snd) (cons (Eq fst snd) result))
             (unify-error fst snd))]
        [(t (VarT x))
         (if (not-occurs? snd fst)
-            (unify-helper (subst rest snd fst) (cons (Pair snd fst) result))
+            (unify-helper (subst rest snd fst) (cons (Eq snd fst) result))
             (unify-error snd fst))]
        [((ArrowT t1 t2) (ArrowT t3 t4))
-        (unify-helper `(,(Pair t1 t3) ,(Pair t2 t4) ,@rest) result)]
+        (unify-helper `(,(Eq t1 t3) ,(Eq t2 t4) ,@rest) result)]
+       [(x x) (unify-helper rest result)]
        [(_ _)  (unify-error fst snd)])]))
 
 (define (unify substs) (unify-helper (set->list substs) (list)))
@@ -114,13 +113,17 @@
     [(NumE n) (values (NumT) const vars)]
     [(BoolE b) (values (BoolT) const vars)]
     [(PlusE l r)
-     (define-values (lty lconst lvars) (type-infer l tenv const vars))
-     (define-values (rty rconst rvars) (type-infer r tenv lconst lvars))
-     (values (NumT) (set-add (set-add rconst (Pair lty (NumT))) (Pair rty (NumT))) rvars)]
+     (define-values (lty lconst lvars) (type-infer l tenv (set) vars))
+     (define-values (rty rconst rvars) (type-infer r tenv (set) lvars))
+     (values (NumT)
+             (set-add (set-add (set-union lconst rconst) (Eq lty (NumT))) (Eq rty (NumT)))
+             rvars)]
     [(MultE l r)
-     (define-values (lty lconst lvars) (type-infer l tenv const vars))
-     (define-values (rty rconst rvars) (type-infer r tenv lconst lvars))
-     (values (NumT) (set-add (set-add rconst (Pair lty (NumT))) (Pair rty (NumT))) rvars)]
+     (define-values (lty lconst lvars) (type-infer l tenv (set) vars))
+     (define-values (rty rconst rvars) (type-infer r tenv (set) lvars))
+     (values (NumT)
+             (set-add (set-add (set-union lconst rconst) (Eq lty (NumT))) (Eq rty (NumT)))
+             rvars)]
     [(IdE x)
      (values (type-lookup x tenv) const vars)]
     [(LamE arg body)
@@ -129,18 +132,20 @@
        (type-infer body (ext-tenv (TypeBinding arg new-tvar) tenv) const (add1 vars)))
      (values (ArrowT new-tvar bty) bconst bvars)]
     [(AppE fun arg)
-     (define-values (funty funconst funvars) (type-infer fun tenv const vars))
-     (define-values (argty argconst argvars) (type-infer arg tenv funconst funvars))
+     (define-values (funty funconst funvars) (type-infer fun tenv (set) vars))
+     (define-values (argty argconst argvars) (type-infer arg tenv (set) funvars))
      (define new-tvar (VarT (add1 argvars)))
-     (values new-tvar (set-add (set-union funconst argconst)
-                               (Pair funty (ArrowT argty new-tvar))) (add1 argvars))]))
+     (values new-tvar (set-add (set-union funconst argconst) (Eq funty (ArrowT argty new-tvar)))
+             (add1 argvars))]))
 
 (define (reify substs ty)
-  (define (lookup/default x substs)
-    (cond [(empty? substs) x]
-          [(equal? (Pair-fst (first substs)) x)
-           (Pair-snd (first substs))]
-          [else (lookup/default x (rest substs))]))
+  (define (lookup/default x sts)
+    (match sts
+      ['() x]
+      [(list (Eq fst snd) rest ...)
+       (if (equal? fst x)
+           (lookup/default snd substs)
+           (lookup/default x rest))]))
   
   (match ty
     [(NumT) (NumT)]
@@ -183,50 +188,50 @@
   (check-equal? (type-subst (VarT 'x) (VarT 'x) (NumT))
                 (NumT))
   
-  (check-equal? (subst (list (Pair (VarT 'a) (NumT))) (VarT 'a) (NumT))
-                (list (Pair (NumT) (NumT))))
+  (check-equal? (subst (list (Eq (VarT 'a) (NumT))) (VarT 'a) (NumT))
+                (list (Eq (NumT) (NumT))))
 
-  (check-equal? (subst (list (Pair (VarT 'a) (VarT 'a))) (VarT 'a) (NumT))
-                (list (Pair (NumT) (NumT))))
+  (check-equal? (subst (list (Eq (VarT 'a) (VarT 'a))) (VarT 'a) (NumT))
+                (list (Eq (NumT) (NumT))))
 
-  (check-equal? (subst (list (Pair (VarT 'b) (VarT 'a))) (VarT 'a) (NumT))
-                (list (Pair (VarT 'b) (NumT))))
+  (check-equal? (subst (list (Eq (VarT 'b) (VarT 'a))) (VarT 'a) (NumT))
+                (list (Eq (VarT 'b) (NumT))))
   
-  (check-equal? (unify-helper (list (Pair (ArrowT (VarT 't1) (VarT 't1))
+  (check-equal? (unify-helper (list (Eq (ArrowT (VarT 't1) (VarT 't1))
                                           (ArrowT (NumT) (VarT 't2))))
                               (list))
-                (list (Pair (VarT 't2) (NumT)) (Pair (VarT 't1) (NumT))))
+                (list (Eq (VarT 't2) (NumT)) (Eq (VarT 't1) (NumT))))
 
-  (check-equal? (unify-helper (list (Pair (VarT 'a1) (ArrowT (NumT) (VarT 'a2)))
-                                    (Pair (ArrowT (VarT 'a1) (VarT 'a2))
+  (check-equal? (unify-helper (list (Eq (VarT 'a1) (ArrowT (NumT) (VarT 'a2)))
+                                    (Eq (ArrowT (VarT 'a1) (VarT 'a2))
                                           (ArrowT (ArrowT (VarT 'a3) (VarT 'a3)) (VarT 'a4))))
                               (list))
-                (list (Pair (VarT 'a4) (NumT)) (Pair (VarT 'a2) (NumT))
-                      (Pair (VarT 'a3) (NumT)) (Pair (VarT 'a1) (ArrowT (NumT) (VarT 'a2)))))
+                (list (Eq (VarT 'a4) (NumT)) (Eq (VarT 'a2) (NumT))
+                      (Eq (VarT 'a3) (NumT)) (Eq (VarT 'a1) (ArrowT (NumT) (VarT 'a2)))))
 
   (check-exn exn:fail?
-             (λ () (unify (list (Pair (VarT 'a1) (ArrowT (VarT 'a1) (VarT 'a2)))))))
+             (λ () (unify (list (Eq (VarT 'a1) (ArrowT (VarT 'a1) (VarT 'a2)))))))
 
   (check-values-equal? (type-infer (parse '{λ {x} {+ x 1}}) empty (set) 0)
                        (values (ArrowT (VarT 1) (NumT))
-                               (set (Pair (VarT 1) (NumT)) (Pair (NumT) (NumT)))
+                               (set (Eq (VarT 1) (NumT)) (Eq (NumT) (NumT)))
                                1))
 
   (check-values-equal? (type-infer (parse '{λ {x} {λ {y} {+ x y}}}) empty (set) 0)
                        (values (ArrowT (VarT 1) (ArrowT (VarT 2) (NumT)))
-                               (set (Pair (VarT 1) (NumT)) (Pair (VarT 2) (NumT)))
+                               (set (Eq (VarT 1) (NumT)) (Eq (VarT 2) (NumT)))
                                2))
   
   (check-values-equal? (type-infer (parse '{{λ {x} x} 1}) empty (set) 0)
                        (values (VarT 2)
-                               (set (Pair (ArrowT (VarT 1) (VarT 1)) (ArrowT (NumT) (VarT 2))))
+                               (set (Eq (ArrowT (VarT 1) (VarT 1)) (ArrowT (NumT) (VarT 2))))
                                2))
   
   (check-values-equal? (type-infer (parse '{{λ {f} {f 0}} {λ {x} x}}) empty (set) 0)
                        (values (VarT 4)
-                               (set (Pair (ArrowT (VarT 1) (VarT 2))
+                               (set (Eq (ArrowT (VarT 1) (VarT 2))
                                           (ArrowT (ArrowT (VarT 3) (VarT 3)) (VarT 4)))
-                                    (Pair (VarT 1) (ArrowT (NumT) (VarT 2))))
+                                    (Eq (VarT 1) (ArrowT (NumT) (VarT 2))))
                                4))
 
   (check-values-equal? (type-infer (parse '{λ {x} x}) empty (set) 0)
@@ -259,7 +264,7 @@
 
   ;; λx.λy.y (y x) :: a -> (a -> a) -> a
   (check-equal? (typecheck (parse '{λ {x} {λ {y} {y {y x}}}}) mt-tenv)
-                (ArrowT (VarT 1) (ArrowT (ArrowT (VarT 1) (VarT 1)) (VarT 1))))
+                (ArrowT (VarT 4) (ArrowT (ArrowT (VarT 4) (VarT 4)) (VarT 4))))
   
   (check-equal? (run '{{{λ {x} {λ {y} {+ x y}}} 3} 7})
                 (NumV 10))
