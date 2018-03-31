@@ -58,7 +58,7 @@
      (match (interp cnd env)
        [(NumV 0) (interp thn env)]
        [(NumV _) (interp els env)]
-       [else (error 'interp "not a boolean")])]
+       [else (error 'interp "not a number")])]
     [(AppE fun arg)
      (match (interp fun env)
        [(ClosureV n body env*)
