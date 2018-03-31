@@ -8,6 +8,8 @@ Each file is a standalone and runnable implementation, including a parser for S-
 
 * `interp-cps.rkt` An interpreter that supports `call/cc` operator
 
+* `interp-delimited.rkt` An interpreter that supports delimited control operators (`reset` and `shift`)
+
 * `stlc.rkt` Simply typed lambda calculus (STLC)
 
 * `stlc-infer.rkt` STLC with type inference
