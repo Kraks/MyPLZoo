@@ -56,6 +56,17 @@
     [`(,fun ,arg) (AppE (parse fun) (parse arg))]
     [else (error 'parse "invalid expression")]))
 
+;; Fresh Number Generator
+
+(define (counter)
+  (define count 0)
+  (define (inner)
+    (set! count (add1 count))
+    count)
+  inner)
+
+(define fresh-n (counter))
+
 ;; Type Inference
 
 (struct Eq (fst snd) #:transparent)
@@ -108,35 +119,32 @@
 
 (define (unify substs) (unify-helper (set->list substs) (list)))
 
-(define (type-infer exp tenv const vars)
+(define (type-infer exp tenv const)
   (match exp
-    [(NumE n) (values (NumT) const vars)]
-    [(BoolE b) (values (BoolT) const vars)]
+    [(NumE n) (values (NumT) const)]
+    [(BoolE b) (values (BoolT) const)]
     [(PlusE l r)
-     (define-values (lty lconst lvars) (type-infer l tenv (set) vars))
-     (define-values (rty rconst rvars) (type-infer r tenv (set) lvars))
+     (define-values (lty lconst) (type-infer l tenv (set)))
+     (define-values (rty rconst) (type-infer r tenv (set)))
      (values (NumT)
-             (set-add (set-add (set-union lconst rconst) (Eq lty (NumT))) (Eq rty (NumT)))
-             rvars)]
+             (set-add (set-add (set-union lconst rconst) (Eq lty (NumT))) (Eq rty (NumT))))]
     [(MultE l r)
-     (define-values (lty lconst lvars) (type-infer l tenv (set) vars))
-     (define-values (rty rconst rvars) (type-infer r tenv (set) lvars))
+     (define-values (lty lconst) (type-infer l tenv (set)))
+     (define-values (rty rconst) (type-infer r tenv (set)))
      (values (NumT)
-             (set-add (set-add (set-union lconst rconst) (Eq lty (NumT))) (Eq rty (NumT)))
-             rvars)]
+             (set-add (set-add (set-union lconst rconst) (Eq lty (NumT))) (Eq rty (NumT))))]
     [(IdE x)
-     (values (type-lookup x tenv) const vars)]
+     (values (type-lookup x tenv) const)]
     [(LamE arg body)
-     (define new-tvar (VarT (add1 vars)))
-     (define-values (bty bconst bvars)
-       (type-infer body (ext-tenv (TypeBinding arg new-tvar) tenv) const (add1 vars)))
-     (values (ArrowT new-tvar bty) bconst bvars)]
+     (define new-tvar (VarT (fresh-n)))
+     (define-values (bty bconst)
+       (type-infer body (ext-tenv (TypeBinding arg new-tvar) tenv) const))
+     (values (ArrowT new-tvar bty) bconst)]
     [(AppE fun arg)
-     (define-values (funty funconst funvars) (type-infer fun tenv (set) vars))
-     (define-values (argty argconst argvars) (type-infer arg tenv (set) funvars))
-     (define new-tvar (VarT (add1 argvars)))
-     (values new-tvar (set-add (set-union funconst argconst) (Eq funty (ArrowT argty new-tvar)))
-             (add1 argvars))]))
+     (define-values (funty funconst) (type-infer fun tenv (set)))
+     (define-values (argty argconst) (type-infer arg tenv (set)))
+     (define new-tvar (VarT (fresh-n)))
+     (values new-tvar (set-add (set-union funconst argconst) (Eq funty (ArrowT argty new-tvar))))]))
 
 (define (reify substs ty)
   (define (lookup/default x sts)
@@ -157,7 +165,8 @@
      (ArrowT (reify substs t1) (reify substs t2))]))
 
 (define (typecheck exp tenv)
-  (define-values (ty constraints vars) (type-infer exp tenv (set) 0))
+  (set! fresh-n (counter))
+  (define-values (ty constraints) (type-infer exp tenv (set)))
   (reify (unify constraints) ty))
 
 ;; Interpreter
@@ -212,32 +221,27 @@
   (check-exn exn:fail?
              (λ () (unify (list (Eq (VarT 'a1) (ArrowT (VarT 'a1) (VarT 'a2)))))))
 
-  (check-values-equal? (type-infer (parse '{λ {x} {+ x 1}}) empty (set) 0)
+  (check-values-equal? (type-infer (parse '{λ {x} {+ x 1}}) empty (set))
                        (values (ArrowT (VarT 1) (NumT))
-                               (set (Eq (VarT 1) (NumT)) (Eq (NumT) (NumT)))
-                               1))
-
-  (check-values-equal? (type-infer (parse '{λ {x} {λ {y} {+ x y}}}) empty (set) 0)
-                       (values (ArrowT (VarT 1) (ArrowT (VarT 2) (NumT)))
-                               (set (Eq (VarT 1) (NumT)) (Eq (VarT 2) (NumT)))
-                               2))
+                               (set (Eq (NumT) (NumT)) (Eq (VarT 1) (NumT)))))
   
-  (check-values-equal? (type-infer (parse '{{λ {x} x} 1}) empty (set) 0)
-                       (values (VarT 2)
-                               (set (Eq (ArrowT (VarT 1) (VarT 1)) (ArrowT (NumT) (VarT 2))))
-                               2))
-  
-  (check-values-equal? (type-infer (parse '{{λ {f} {f 0}} {λ {x} x}}) empty (set) 0)
-                       (values (VarT 4)
-                               (set (Eq (ArrowT (VarT 1) (VarT 2))
-                                          (ArrowT (ArrowT (VarT 3) (VarT 3)) (VarT 4)))
-                                    (Eq (VarT 1) (ArrowT (NumT) (VarT 2))))
-                               4))
+  (check-values-equal? (type-infer (parse '{λ {x} {λ {y} {+ x y}}}) empty (set))
+                       (values (ArrowT (VarT 2) (ArrowT (VarT 3) (NumT)))
+                               (set (Eq (VarT 3) (NumT)) (Eq (VarT 2) (NumT)))))
 
-  (check-values-equal? (type-infer (parse '{λ {x} x}) empty (set) 0)
-                       (values (ArrowT (VarT 1) (VarT 1))
-                               (set)
-                               1))
+  (check-values-equal? (type-infer (parse '{{λ {x} x} 1}) empty (set))
+                       (values (VarT 5)
+                               (set (Eq (ArrowT (VarT 4) (VarT 4)) (ArrowT (NumT) (VarT 5))))))
+
+  (check-values-equal? (type-infer (parse '{{λ {f} {f 0}} {λ {x} x}}) empty (set))
+                       (values (VarT 9)
+                               (set (Eq (VarT 6) (ArrowT (NumT) (VarT 7)))
+                                    (Eq (ArrowT (VarT 6) (VarT 7))
+                                        (ArrowT (ArrowT (VarT 8) (VarT 8)) (VarT 9))))))
+
+  (check-values-equal? (type-infer (parse '{λ {x} x}) empty (set))
+                       (values (ArrowT (VarT 10) (VarT 10))
+                               (set)))
   
   (check-equal? (typecheck (parse '{{λ {f} {f 0}} {λ {x} x}}) mt-tenv)
                 (NumT))
