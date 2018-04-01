@@ -35,7 +35,7 @@ Each file is a standalone and runnable implementation, including a parser for S-
 
 * `systemf+sub.rkt` System F + bounded quantifications and Subtyping #TODO#
 
-* `letpoly.rkt` STLC with type inference and let-polymorphism #TODO#
+* `letpoly.rkt` STLC with type inference and let-polymorphism
 
 * `lf.rkt` First-order dependent types, i.e. λLF #TODO#
 
