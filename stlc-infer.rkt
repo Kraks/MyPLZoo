@@ -79,14 +79,14 @@
     [(ArrowT t1 t2) (ArrowT (type-subst t1 src dst)
                             (type-subst t2 src dst))]))
 
-(define (subst eqs src dst)
+(define (unify/subst eqs src dst)
   (cond [(empty? eqs) eqs]
         [else (define eq (first eqs))
               (define eqfst (Eq-fst eq))
               (define eqsnd (Eq-snd eq))
               (cons (Eq (type-subst eqfst src dst)
                         (type-subst eqsnd src dst))
-                    (subst (rest eqs) src dst))]))
+                    (unify/subst (rest eqs) src dst))]))
 
 (define (occurs? t in)
   (match in
@@ -99,25 +99,25 @@
 (define (unify-error t1 t2)
   (error 'type-error "can not unify: ~a and ~a" t1 t2))
 
-(define (unify-helper substs result)
+(define (unify/helper substs result)
   (match substs
     ['() result]
     [(list (Eq fst snd) rest ...)
      (match* (fst snd)
        [((VarT x) t)
         (if (not-occurs? fst snd)
-            (unify-helper (subst rest fst snd) (cons (Eq fst snd) result))
+            (unify/helper (unify/subst rest fst snd) (cons (Eq fst snd) result))
             (unify-error fst snd))]
        [(t (VarT x))
         (if (not-occurs? snd fst)
-            (unify-helper (subst rest snd fst) (cons (Eq snd fst) result))
+            (unify/helper (unify/subst rest snd fst) (cons (Eq snd fst) result))
             (unify-error snd fst))]
        [((ArrowT t1 t2) (ArrowT t3 t4))
-        (unify-helper `(,(Eq t1 t3) ,(Eq t2 t4) ,@rest) result)]
-       [(x x) (unify-helper rest result)]
+        (unify/helper `(,(Eq t1 t3) ,(Eq t2 t4) ,@rest) result)]
+       [(x x) (unify/helper rest result)]
        [(_ _)  (unify-error fst snd)])]))
 
-(define (unify substs) (unify-helper (set->list substs) (list)))
+(define (unify substs) (unify/helper (set->list substs) (list)))
 
 (define (type-infer exp tenv const)
   (match exp
@@ -197,21 +197,21 @@
   (check-equal? (type-subst (VarT 'x) (VarT 'x) (NumT))
                 (NumT))
   
-  (check-equal? (subst (list (Eq (VarT 'a) (NumT))) (VarT 'a) (NumT))
+  (check-equal? (unify/subst (list (Eq (VarT 'a) (NumT))) (VarT 'a) (NumT))
                 (list (Eq (NumT) (NumT))))
 
-  (check-equal? (subst (list (Eq (VarT 'a) (VarT 'a))) (VarT 'a) (NumT))
+  (check-equal? (unify/subst (list (Eq (VarT 'a) (VarT 'a))) (VarT 'a) (NumT))
                 (list (Eq (NumT) (NumT))))
 
-  (check-equal? (subst (list (Eq (VarT 'b) (VarT 'a))) (VarT 'a) (NumT))
+  (check-equal? (unify/subst (list (Eq (VarT 'b) (VarT 'a))) (VarT 'a) (NumT))
                 (list (Eq (VarT 'b) (NumT))))
   
-  (check-equal? (unify-helper (list (Eq (ArrowT (VarT 't1) (VarT 't1))
+  (check-equal? (unify/helper (list (Eq (ArrowT (VarT 't1) (VarT 't1))
                                           (ArrowT (NumT) (VarT 't2))))
                               (list))
                 (list (Eq (VarT 't2) (NumT)) (Eq (VarT 't1) (NumT))))
 
-  (check-equal? (unify-helper (list (Eq (VarT 'a1) (ArrowT (NumT) (VarT 'a2)))
+  (check-equal? (unify/helper (list (Eq (VarT 'a1) (ArrowT (NumT) (VarT 'a2)))
                                     (Eq (ArrowT (VarT 'a1) (VarT 'a2))
                                           (ArrowT (ArrowT (VarT 'a3) (VarT 'a3)) (VarT 'a4))))
                               (list))

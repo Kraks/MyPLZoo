@@ -96,6 +96,11 @@
           (generalize ty (- vars 1) (cons vars gen-vars))
           (generalize ty (- vars 1) gen-vars))))
 
+(define (instantiate ty ns)
+  (cond [(empty? ns) ty]
+        [else (instantiate (type-subst ty (VarT (car ns)) (VarT (fresh-n)))
+                (rest ns))]))
+
 (define (type-subst in src dst)
   (match in
     [(NumT) in]
@@ -110,15 +115,15 @@
             (define new-ty (type-subst n (VarT new-n) ty))
             (type-subst (ForallT new-n new-ty) src dst)]
            [else (ForallT n (type-subst ty src dst))])]))
-           
-(define (subst eqs src dst)
+
+(define (unify/subst eqs src dst)
   (cond [(empty? eqs) eqs]
         [else (define eq (first eqs))
               (define eqfst (Eq-fst eq))
               (define eqsnd (Eq-snd eq))
               (cons (Eq (type-subst eqfst src dst)
                         (type-subst eqsnd src dst))
-                    (subst (rest eqs) src dst))]))
+                    (unify/subst (rest eqs) src dst))]))
 
 (define (occurs? t in)
   (match in
@@ -137,30 +142,25 @@
 (define (unify-error t1 t2)
   (error 'type-error "can not unify: ~a and ~a" t1 t2))
 
-(define (unify-helper substs result)
+(define (unify/helper substs result)
   (match substs
     ['() result]
     [(list (Eq fst snd) rest ...)
      (match* (fst snd)
        [((VarT x) t)
         (if (not-occurs? fst snd)
-            (unify-helper (subst rest fst snd) (cons (Eq fst snd) result))
+            (unify/helper (unify/subst rest fst snd) (cons (Eq fst snd) result))
             (unify-error fst snd))]
        [(t (VarT x))
         (if (not-occurs? snd fst)
-            (unify-helper (subst rest snd fst) (cons (Eq snd fst) result))
+            (unify/helper (unify/subst rest snd fst) (cons (Eq snd fst) result))
             (unify-error snd fst))]
        [((ArrowT t1 t2) (ArrowT t3 t4))
-        (unify-helper `(,(Eq t1 t3) ,(Eq t2 t4) ,@rest) result)]
-       [(x x) (unify-helper rest result)]
+        (unify/helper `(,(Eq t1 t3) ,(Eq t2 t4) ,@rest) result)]
+       [(x x) (unify/helper rest result)]
        [(_ _)  (unify-error fst snd)])]))
 
-(define (unify substs) (unify-helper (set->list substs) (list)))
-
-(define (instantiate ty ns)
-  (cond [(empty? ns) ty]
-        [else (instantiate (type-subst ty (VarT (car ns)) (VarT (fresh-n)))
-                (rest ns))]))
+(define (unify substs) (unify/helper (set->list substs) (list)))
 
 (define (type-infer exp tenv const)
   (match exp
@@ -226,21 +226,42 @@
 
 ;; Interpreter
 
+(define (interp expr env)
+  (match expr
+    [(IdE x) (lookup x env)]
+    [(NumE n) (NumV n)]
+    [(BoolE b) (BoolV b)]
+    [(PlusE l r) (NumV (+ (NumV-n (interp l env)) (NumV-n (interp r env))))]
+    [(MultE l r) (NumV (* (NumV-n (interp l env)) (NumV-n (interp r env))))]
+    [(LamE arg body) (ClosureV arg body env)]
+    [(AppE fun arg)
+     (match (interp fun env)
+       [(ClosureV n body env*) (interp body (ext-env (Binding n (interp arg env)) env*))])]
+    [(LetE x e body)
+     (interp body (ext-env (Binding x (interp e env)) env))])) 
+
 (define mt-env empty)
 (define mt-tenv empty)
+
+(define (run prog)
+  (define prog* (parse prog))
+  (typecheck prog* mt-tenv)
+  (interp prog* mt-env))
+
+;; Tests
 
 (module+ test
   (check-equal? (generalize (ArrowT (VarT 1) (VarT 1)) 1 (list))
                 (ForallT (list 1) (ArrowT (VarT 1) (VarT 1))))
   
   (check-equal? (typecheck (parse '{let {[id {λ {x} x}]}
-                                     {{id {λ {y} y}}
+                                     {{id {id {λ {y} y}}}
                                       {id 0}}})
                            empty)
                 (NumT))
 
-  (check-equal? (typecheck (parse '{let {[id {λ {x} {λ {y} {+ x y}}}]}
-                                     {{id 3} 4}})
+  (check-equal? (typecheck (parse '{let {[plus {λ {x} {λ {y} {+ x y}}}]}
+                                     {{plus 3} 4}})
                            empty)
                 (NumT))
 
@@ -249,11 +270,16 @@
                            empty)
                 (ForallT '(1) (ArrowT (VarT 1) (VarT 1))))
 
+  (define S '{λ {x} {λ {y} {λ {z} {{x z} {y z}}}}})
+  (check-equal? (typecheck (parse S) mt-tenv)
+                (ForallT '(3 5 6)
+                         (ArrowT (ArrowT (VarT 3) (ArrowT (VarT 5) (VarT 6)))
+                                 (ArrowT (ArrowT (VarT 3) (VarT 5))
+                                         (ArrowT (VarT 3) (VarT 6))))))
+  
   (define K '{λ {x} {λ {y} x}})
   (check-equal? (typecheck (parse K) mt-tenv)
                 (ForallT '(1 2) (ArrowT (VarT 1) (ArrowT (VarT 2) (VarT 1)))))
                 
   (check-exn exn:fail? (λ () (typecheck (parse '{{λ {id} {{id id} 3}} {λ {x} x}}) mt-tenv)))
   )
-
-
