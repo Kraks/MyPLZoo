@@ -5,7 +5,8 @@
 
 (provide type-error
          make-lookup
-         check-values-equal?)
+         check-values-equal?
+         counter simple-counter)
 
 (define type-error
   (case-lambda
@@ -26,4 +27,17 @@
      #'(call-with-values (λ () v1)
                          (λ vlist1 (call-with-values (λ () v2)
                                                      (λ vlist2 (check-true (equal? vlist1 vlist2))))))]))
-  
+
+(define (simple-counter)
+  (define count 0)
+  (define (inner)
+    (set! count (add1 count))
+    count)
+  inner)
+
+(define (counter)
+  (define count 0)
+  (define (inner)
+    (set! count (add1 count))
+    count)
+  (values inner (λ () count)))

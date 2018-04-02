@@ -61,13 +61,6 @@
 
 ;; Fresh Number Generator
 
-(define (counter)
-  (define count 0)
-  (define (inner)
-    (set! count (add1 count))
-    count)
-  (values inner (λ () count)))
-
 (define-values (fresh-n current-n) (counter))
 
 (define (refresh!)
