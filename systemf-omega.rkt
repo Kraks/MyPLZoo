@@ -95,6 +95,15 @@
     ['* (StarK)]
     [`(,k1 -> ,k2) (ArrowK (parse-kind k1) (parse-kind k2))]))
 
+;; Fresh Number Generator
+
+(define-values (fresh-n current-n) (counter))
+
+(define (refresh!)
+  (define-values (fresh-n^ current-n^) (counter))
+  (set! fresh-n fresh-n^)
+  (set! current-n current-n^))
+
 ;; Type Checker
 
 (define (kind-check t tenv)
@@ -116,14 +125,6 @@
      (match (kind-check body (ext-tenv (KindBinding tvar k) tenv))
        [(StarK) (StarK)]
        [else (error 'kind-check "not a * kind")])]))
-
-(define (gen-name n i for body)
-  (let ([new-n (string->symbol (string-append (symbol->string n)
-                                              (number->string i)))])
-    (if (or (free-type-var? new-n for)
-            (free-type-var? new-n body))
-        (gen-name n (+ i 1) for body)
-        new-n)))
 
 (define (free-type-var? n ty)
   (match ty
@@ -155,14 +156,14 @@
     [(OpAbsT arg arg/k body)
      (cond [(equal? arg what) in]
            [(free-type-var? arg for)
-            (define new-arg (gen-name arg 1 for body))
+            (define new-arg (fresh-n))
             (define new-body (type-subst arg (VarT new-arg) body))
             (type-subst what for (OpAbsT new-arg arg/k new-body))]
            [else (OpAbsT arg arg/k (type-subst what for body))])]
     [(ForallT n k body)
      (cond [(equal? n what) in]
            [(free-type-var? n for)
-            (define new-n (gen-name n 1 for body))
+            (define new-n (fresh-n))
             (define new-body (type-subst n (VarT new-n) body))
             (type-subst what for (ForallT new-n k new-body))]
            [else (ForallT n k (type-subst what for body))])]))
@@ -175,23 +176,51 @@
        [else (error 'type-norm "can not substitute")])]
     [else t]))
 
+(define (type-var-alpha ty)
+  (type-var-alpha/helper ty (simple-counter)))
+
+(define (type-var-alpha/helper ty c)
+  (match ty
+    [(OpAbsT arg arg/k body)
+     (define new-n (c))
+     (OpAbsT new-n arg/k (type-var-alpha/helper (type-subst arg (VarT new-n) body) c))]
+    [(ForallT n k body)
+     (define new-n (c))
+     (ForallT new-n k (type-var-alpha/helper (type-subst n (VarT new-n) body) c))]
+    [(ArrowT t1 t2)
+     (ArrowT (type-var-alpha/helper t1 c) (type-var-alpha/helper t2 c))]
+    [_ ty]))
+
 (define (type-equal? t1 t2)
-  ;; TODO may need alpha renaming for OpAbsT and ForallT
+  (define (type-equal?/OpAbsT t1 t2)
+    (define t1/α (type-var-alpha t1))
+    (define t2/α (type-var-alpha t2))
+    (match* (t1/α t2/α)
+      [((OpAbsT arg1 arg/k1 body1) (OpAbsT arg2 arg/k2 body2))
+       (and (equal? arg/k1 arg/k2) (type-equal? body1 body2))]))
+  
+  (define (type-equal?/ForallT t1 t2)
+    (define t1/α (type-var-alpha t1))
+    (define t2/α (type-var-alpha t2))
+    (match* (t1/α t2/α)
+      [((ForallT n1 k1 body1) (ForallT n2 k2 body2))
+       (and (equal? k1 k2) (type-equal? body1 body2))]))
+  
   (define t1^ (type-apply t1))
   (define t2^ (type-apply t2))
+  
   (match* (t1^ t2^)
     [((NumT) (NumT)) #true]
     [((BoolT) (BoolT)) #true]
     [((VarT x) (VarT y)) (equal? x y)]
     [((ArrowT t11 t12) (ArrowT t21 t22))
      (and (type-equal? t11 t21) (type-equal? t12 t22))]
-    [((OpAbsT arg1 arg/k1 body1)
-      (OpAbsT arg2 arg/k2 body2))
-     (and (equal? arg/k1 arg/k2) (type-equal? body1 body2))]
+    [((OpAbsT _ _ _) (OpAbsT _ _ _))
+     (type-equal?/OpAbsT t1^ t2^)]
+    [((ForallT _ _ _) (ForallT _ _ _))
+     (type-equal?/ForallT t1^ t2^)]
     [((OpAppT t11 t12) (OpAppT t21 t22))
      (and (type-equal? t11 t21) (type-equal? t12 t22))]
-    [((ForallT n1 k1 body1) (ForallT n2 k2 body2))
-     (and (equal? k1 k2) (type-equal? body1 body2))]
     [(_ _) #false]))
 
 (define (typecheck-nums l r tenv)
@@ -265,6 +294,7 @@
 (define mt-tenv empty)
 
 (define (run prog)
+  (refresh!)
   (define prog* (parse prog))
   (typecheck prog* mt-tenv)
   (interp prog* mt-env))
@@ -361,12 +391,14 @@
                                      {λ {[x : A]} {λ {[y : B]} {Λ {[C : *]}
                                                                   {λ {[k : {A -> {B -> C}}]}
                                                                     {{k x} y}}}}}}})
+  
   (define fst `{Λ {[A : *]} {Λ {[B : *]} {λ {[p : [[,PairT A] B]]}
                                            {[@ p A] {λ {[x : A]} {λ {[y : B]} x}}}}}})
   (define snd `{Λ {[A : *]} {Λ {[B : *]} {λ {[p : [[,PairT A] B]]}
                                            {[@ p B] {λ {[x : A]} {λ {[y : B]} y}}}}}})
 
   (define PairT-num/bool `[[,PairT num] bool])
+
   (define make-pair-num/bool `[@ [@ ,make-pair num] bool])
   (define fst-num/bool `[@ [@ ,fst num] bool])
   (define snd-num/bool `[@ [@ ,snd num] bool])
@@ -389,7 +421,10 @@
                         {,snd-num/bool p}})
                 (BoolV #t))
 
-  (parse '{if true
-              {Λ {[A : *]} {λ {[x : A]} x}}
-              {Λ {[B : *]} {λ {[y : B]} y}}})
+  ;; Equal under alpha renaming
+  (check-equal? (typecheck (parse '{if true
+                                       {Λ {[A : *]} {λ {[x : A]} x}}
+                                       {Λ {[B : *]} {λ {[y : B]} y}}})
+                           empty)
+                (ForallT 'A (StarK) (ArrowT (VarT 'A) (VarT 'A))))
   )
