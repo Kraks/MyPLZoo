@@ -150,7 +150,26 @@
        [else (error 'type-norm "can not substitute")])]
     [else t]))
 
+(define (type-var-alpha ty)
+  (type-var-alpha/helper ty (simple-counter)))
+
+(define (type-var-alpha/helper ty c)
+  (match ty
+    [(OpAbsT arg arg/k body)
+     (define new-n (c))
+     (OpAbsT new-n arg/k (type-var-alpha/helper (type-subst arg (VarT new-n) body) c))]
+    [(ArrowT t1 t2)
+     (ArrowT (type-var-alpha/helper t1 c) (type-var-alpha/helper t2 c))]
+    [_ ty]))
+
 (define (type-equal? t1 t2)
+  (define (type-equal?/OpAbsT t1 t2)
+    (define t1/α (type-var-alpha t1))
+    (define t2/α (type-var-alpha t2))
+    (match* (t1/α t2/α)
+      [((OpAbsT arg1 arg/k1 body1) (OpAbsT arg2 arg/k2 body2))
+       (and (equal? arg/k1 arg/k2) (type-equal? body1 body2))]))
+  
   (define t1^ (type-apply t1))
   (define t2^ (type-apply t2))
   (match* (t1^ t2^)
@@ -159,10 +178,8 @@
     [((VarT x) (VarT y)) (equal? x y)]
     [((ArrowT t11 t12) (ArrowT t21 t22))
      (and (type-equal? t11 t21) (type-equal? t12 t22))]
-    [((OpAbsT arg1 arg/k1 body1)
-      (OpAbsT arg2 arg/k2 body2))
-     ;; TODO alpha renaming
-     (and (equal? arg/k1 arg/k2) (type-equal? body1 body2))]
+    [((OpAbsT _ _ _) (OpAbsT _ _ _))
+     (type-equal?/OpAbsT t1^ t2^)]
     [((OpAppT t11 t12) (OpAppT t21 t22))
      (and (type-equal? t11 t21) (type-equal? t12 t22))]
     [(_ _) #false]))
