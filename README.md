@@ -3,7 +3,7 @@
 > Inside every large language is a small language struggling to get out...
 > Tony Hoare
 
-Interpreters and type checkers for various toy programming languages written in Racket.
+Interpreters and type checkers of various toy programming languages written in Racket.
 
 Each file is a standalone and runnable implementation, including a parser for S-expression based syntax, a type checker if necessary, an interpreter and a set of test cases written in that language.
 
